@@ -21,7 +21,7 @@ struct SubmitForReviewHandler {
         )
 
         let response = try await client.post(
-            Endpoints.appStoreVersionSubmissions(),
+            Endpoints.appStoreReviewSubmissions(),
             body: body,
             as: APIResponse<AppStoreReviewSubmission>.self
         )

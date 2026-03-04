@@ -17,9 +17,9 @@ struct AppStoreVersionLocalization: Decodable, Sendable {
 }
 
 struct CreateLocalizationRequest: Encodable, Sendable {
-    let data: Data
+    let data: RequestData
 
-    struct Data: Encodable, Sendable {
+    struct RequestData: Encodable, Sendable {
         let type = "appStoreVersionLocalizations"
         let attributes: Attributes
         let relationships: Relationships
@@ -41,9 +41,9 @@ struct CreateLocalizationRequest: Encodable, Sendable {
 }
 
 struct UpdateLocalizationRequest: Encodable, Sendable {
-    let data: Data
+    let data: RequestData
 
-    struct Data: Encodable, Sendable {
+    struct RequestData: Encodable, Sendable {
         let type = "appStoreVersionLocalizations"
         let id: String
         let attributes: Attributes

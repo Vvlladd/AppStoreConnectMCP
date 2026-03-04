@@ -36,6 +36,25 @@ actor AppStoreConnectClient {
         return try decode(data, as: type)
     }
 
+    func patchNoContent<Body: Encodable & Sendable>(_ url: URL, body: Body) async throws {
+        let bodyData = try encoder.encode(body)
+        _ = try await performRequest(url: url, method: "PATCH", body: bodyData)
+    }
+
+    /// Fetches all pages of a paginated list endpoint, returning the combined data array.
+    func getAll<T: Decodable & Sendable>(_ url: URL, as type: APIListResponse<T>.Type) async throws -> [T] {
+        var allItems: [T] = []
+        var currentURL: URL? = url
+
+        while let pageURL = currentURL {
+            let response: APIListResponse<T> = try await get(pageURL, as: APIListResponse<T>.self)
+            allItems.append(contentsOf: response.data)
+            currentURL = response.nextPageURL
+        }
+
+        return allItems
+    }
+
     // MARK: - Private
 
     private func performRequest(
@@ -43,7 +62,11 @@ actor AppStoreConnectClient {
     ) async throws -> Data {
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
+
+        if body != nil {
+            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        }
 
         let token = try await jwtGenerator.token()
         request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
@@ -66,8 +89,8 @@ actor AppStoreConnectClient {
             return try await performRequest(url: url, method: method, body: body, isRetry: true)
         }
 
-        // 429 → respect Retry-After
-        if statusCode == 429 {
+        // 429 → respect Retry-After, retry once
+        if statusCode == 429 && !isRetry {
             let retryAfter = httpResponse.value(forHTTPHeaderField: "Retry-After")
                 .flatMap(Double.init) ?? 5.0
             try await Task.sleep(nanoseconds: UInt64(retryAfter * 1_000_000_000))

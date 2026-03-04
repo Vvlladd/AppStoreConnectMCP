@@ -15,6 +15,21 @@ struct UpdateVersionHandler {
         let copyright: String? = if case .string(let v) = args["copyright"] { v } else { nil }
         let releaseType: String? = if case .string(let v) = args["release_type"] { v } else { nil }
 
+        guard copyright != nil || releaseType != nil else {
+            throw AppStoreConnectError.invalidArgument(
+                "At least one of 'copyright' or 'release_type' must be provided"
+            )
+        }
+
+        if let releaseType {
+            let validReleaseTypes = ["MANUAL", "AFTER_APPROVAL", "SCHEDULED"]
+            guard validReleaseTypes.contains(releaseType) else {
+                throw AppStoreConnectError.invalidArgument(
+                    "release_type must be one of: \(validReleaseTypes.joined(separator: ", "))"
+                )
+            }
+        }
+
         let body = UpdateVersionRequest(
             data: .init(
                 id: versionID,

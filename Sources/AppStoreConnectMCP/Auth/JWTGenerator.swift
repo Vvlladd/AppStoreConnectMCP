@@ -2,6 +2,8 @@ import Foundation
 import CryptoKit
 
 actor JWTGenerator {
+    private static let tokenLifetime: TimeInterval = 20 * 60
+
     private let authMode: AuthMode
     private let keyID: String
     private let issuerID: String?
@@ -25,7 +27,7 @@ actor JWTGenerator {
         }
         let newToken = try generateToken()
         cachedToken = newToken
-        tokenExpiry = Date().addingTimeInterval(20 * 60)
+        tokenExpiry = Date().addingTimeInterval(Self.tokenLifetime)
         return newToken
     }
 
@@ -39,7 +41,7 @@ actor JWTGenerator {
         let header = #"{"alg":"ES256","kid":"\#(keyID)","typ":"JWT"}"#
 
         let now = Int(Date().timeIntervalSince1970)
-        let exp = now + 20 * 60
+        let exp = now + Int(Self.tokenLifetime)
         let claims: String
         switch authMode {
         case .team:
@@ -70,9 +72,9 @@ actor JWTGenerator {
         }
 
         let stripped = content
-            .replacingOccurrences(of: "-----BEGIN PRIVATE KEY-----", with: "")
-            .replacingOccurrences(of: "-----END PRIVATE KEY-----", with: "")
-            .replacingOccurrences(of: "\n", with: "")
+            .split(separator: "\n")
+            .filter { !$0.hasPrefix("-----") }
+            .joined()
             .replacingOccurrences(of: "\r", with: "")
             .trimmingCharacters(in: .whitespaces)
 

@@ -18,8 +18,24 @@ struct CreateVersionHandler {
             throw AppStoreConnectError.invalidArgument("platform is required")
         }
 
+        let validPlatforms = ["IOS", "MAC_OS", "TV_OS", "VISION_OS"]
+        guard validPlatforms.contains(platform) else {
+            throw AppStoreConnectError.invalidArgument(
+                "platform must be one of: \(validPlatforms.joined(separator: ", "))"
+            )
+        }
+
         let copyright: String? = if case .string(let v) = args["copyright"] { v } else { nil }
         let releaseType: String? = if case .string(let v) = args["release_type"] { v } else { nil }
+
+        if let releaseType {
+            let validReleaseTypes = ["MANUAL", "AFTER_APPROVAL", "SCHEDULED"]
+            guard validReleaseTypes.contains(releaseType) else {
+                throw AppStoreConnectError.invalidArgument(
+                    "release_type must be one of: \(validReleaseTypes.joined(separator: ", "))"
+                )
+            }
+        }
 
         let body = CreateVersionRequest(
             data: .init(

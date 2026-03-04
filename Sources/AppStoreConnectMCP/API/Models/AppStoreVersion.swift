@@ -16,9 +16,9 @@ struct AppStoreVersion: Decodable, Sendable {
 }
 
 struct CreateVersionRequest: Encodable, Sendable {
-    let data: Data
+    let data: RequestData
 
-    struct Data: Encodable, Sendable {
+    struct RequestData: Encodable, Sendable {
         let type = "appStoreVersions"
         let attributes: Attributes
         let relationships: Relationships
@@ -37,9 +37,9 @@ struct CreateVersionRequest: Encodable, Sendable {
 }
 
 struct UpdateVersionRequest: Encodable, Sendable {
-    let data: Data
+    let data: RequestData
 
-    struct Data: Encodable, Sendable {
+    struct RequestData: Encodable, Sendable {
         let type = "appStoreVersions"
         let id: String
         let attributes: Attributes
