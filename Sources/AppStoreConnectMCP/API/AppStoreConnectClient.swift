@@ -58,7 +58,8 @@ actor AppStoreConnectClient {
     // MARK: - Private
 
     private func performRequest(
-        url: URL, method: String, body: Data? = nil, isRetry: Bool = false
+        url: URL, method: String, body: Data? = nil,
+        authRetried: Bool = false, rateLimitRetried: Bool = false
     ) async throws -> Data {
         var request = URLRequest(url: url)
         request.httpMethod = method
@@ -84,17 +85,23 @@ actor AppStoreConnectClient {
         let statusCode = httpResponse.statusCode
 
         // 401 → refresh JWT and retry once
-        if statusCode == 401 && !isRetry {
+        if statusCode == 401 && !authRetried {
             _ = try await jwtGenerator.forceRefresh()
-            return try await performRequest(url: url, method: method, body: body, isRetry: true)
+            return try await performRequest(
+                url: url, method: method, body: body,
+                authRetried: true, rateLimitRetried: rateLimitRetried
+            )
         }
 
-        // 429 → respect Retry-After, retry once
-        if statusCode == 429 && !isRetry {
+        // 429 → respect Retry-After, retry once (independent of auth retry)
+        if statusCode == 429 && !rateLimitRetried {
             let retryAfter = httpResponse.value(forHTTPHeaderField: "Retry-After")
                 .flatMap(Double.init) ?? 5.0
             try await Task.sleep(nanoseconds: UInt64(retryAfter * 1_000_000_000))
-            return try await performRequest(url: url, method: method, body: body, isRetry: true)
+            return try await performRequest(
+                url: url, method: method, body: body,
+                authRetried: authRetried, rateLimitRetried: true
+            )
         }
 
         guard (200...299).contains(statusCode) else {
