@@ -1,0 +1,28 @@
+# Xcode generated project
+*.xcodeproj
+*.xcworkspace
+
+# Tuist managed
+Derived/
+.build/
+
+# Tuist local cache and generated dependencies
+Tuist/Dependencies/
+Tuist/.build/
+Tuist/Package.resolved
+
+# macOS
+.DS_Store
+
+# Xcode
+xcuserdata/
+*.xcscmblueprint
+
+# Swift Package Manager
+.swiftpm/
+Packages/
+Package.resolved
+
+# Build artifacts
+DerivedData/
+build/
