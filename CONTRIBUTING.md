@@ -10,7 +10,7 @@
    
      bugfix/change-main-button-size
       
-4. At least one approval from [Ciprian](https://github.com/cipy) or [Vlad](https://github.com/Vvlladd) is required
+4. At least one approval from [Vlad](https://github.com/Vvlladd) or [Max](https://github.com/maxhartung) is required
 
 ---
 
