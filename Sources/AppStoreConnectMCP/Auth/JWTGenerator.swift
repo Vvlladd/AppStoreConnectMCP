@@ -2,14 +2,16 @@ import Foundation
 import CryptoKit
 
 actor JWTGenerator {
+    private let authMode: AuthMode
     private let keyID: String
-    private let issuerID: String
+    private let issuerID: String?
     private let privateKey: P256.Signing.PrivateKey
 
     private var cachedToken: String?
     private var tokenExpiry: Date?
 
     init(configuration: Configuration) throws {
+        self.authMode = configuration.authMode
         self.keyID = configuration.keyID
         self.issuerID = configuration.issuerID
 
@@ -38,7 +40,16 @@ actor JWTGenerator {
 
         let now = Int(Date().timeIntervalSince1970)
         let exp = now + 20 * 60
-        let claims = #"{"iss":"\#(issuerID)","iat":\#(now),"exp":\#(exp),"aud":"appstoreconnect-v1"}"#
+        let claims: String
+        switch authMode {
+        case .team:
+            guard let issuerID else {
+                throw AppStoreConnectError.jwt("Missing issuer for team auth mode")
+            }
+            claims = #"{"iss":"\#(issuerID)","iat":\#(now),"exp":\#(exp),"aud":"appstoreconnect-v1"}"#
+        case .individual:
+            claims = #"{"sub":"user","iat":\#(now),"exp":\#(exp),"aud":"appstoreconnect-v1"}"#
+        }
 
         let headerEncoded = Self.base64URLEncode(Data(header.utf8))
         let claimsEncoded = Self.base64URLEncode(Data(claims.utf8))

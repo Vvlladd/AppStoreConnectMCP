@@ -48,12 +48,19 @@ tuist generate
 Set these before running:
 
 ```bash
-export ASC_ISSUER_ID="your-issuer-id"
+export ASC_AUTH_MODE="team" # or "individual"; default is "team"
 export ASC_KEY_ID="your-key-id"
 export ASC_PRIVATE_KEY_PATH="/path/to/AuthKey_XXXXXX.p8"
 ```
 
-You can find these values in [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api).
+For team keys, also set:
+
+```bash
+export ASC_ISSUER_ID="your-issuer-id"
+```
+
+Use values from [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api).
+For individual keys, set `ASC_AUTH_MODE="individual"` and do not set `ASC_ISSUER_ID`.
 
 ### 3. Build & Run
 
@@ -86,6 +93,7 @@ Add to `~/.claude.json` (global) or `.claude/settings.json` (project):
     "appstoreconnect": {
       "command": "/path/to/AppStoreConnectMCP/.build/debug/AppStoreConnectMCP",
       "env": {
+        "ASC_AUTH_MODE": "team",
         "ASC_ISSUER_ID": "your-issuer-id",
         "ASC_KEY_ID": "your-key-id",
         "ASC_PRIVATE_KEY_PATH": "/path/to/AuthKey.p8"
