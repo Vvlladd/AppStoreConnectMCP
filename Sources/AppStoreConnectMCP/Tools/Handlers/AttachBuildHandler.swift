@@ -15,22 +15,14 @@ struct AttachBuildHandler {
             throw AppStoreConnectError.invalidArgument("build_id is required")
         }
 
-        // Update the version to attach the build via relationship
-        let body = UpdateVersionRequest(
-            data: .init(
-                id: versionID,
-                attributes: .init(copyright: nil, releaseType: nil)
-            )
-        )
-
-        // The build attachment is done via the version's build relationship endpoint
         let relationshipBody = RelationshipData(
             data: .init(type: "builds", id: buildID)
         )
 
-        // PATCH /v1/appStoreVersions/{id}/relationships/build
-        let url = URL(string: "https://api.appstoreconnect.apple.com/v1/appStoreVersions/\(versionID)/relationships/build")!
-        _ = try await client.patch(url, body: relationshipBody, as: APIResponse<AppStoreVersion>.self)
+        try await client.patchNoContent(
+            Endpoints.versionBuildRelationship(versionID: versionID),
+            body: relationshipBody
+        )
 
         return CallTool.Result(content: [.text(
             "Attached build [\(buildID)] to version [\(versionID)]"

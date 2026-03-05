@@ -6,10 +6,10 @@ struct AppStoreReviewSubmission: Decodable, Sendable {
 }
 
 struct CreateSubmissionRequest: Encodable, Sendable {
-    let data: Data
+    let data: RequestData
 
-    struct Data: Encodable, Sendable {
-        let type = "appStoreVersionSubmissions"
+    struct RequestData: Encodable, Sendable {
+        let type = "appStoreReviewSubmissions"
         let relationships: Relationships
 
         struct Relationships: Encodable, Sendable {
