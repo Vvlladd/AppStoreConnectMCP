@@ -29,24 +29,85 @@ struct Configuration: Sendable {
     let privateKeyPath: String
 
     static func fromEnvironment() throws -> Configuration {
-        let authMode = try AuthMode.fromEnvironment(
-            ProcessInfo.processInfo.environment["ASC_AUTH_MODE"]
+        let env = ProcessInfo.processInfo.environment
+        return try buildConfiguration(
+            authModeValue: env["ASC_AUTH_MODE"],
+            issuerID: env["ASC_ISSUER_ID"],
+            keyID: env["ASC_KEY_ID"],
+            keyPath: env["ASC_PRIVATE_KEY_PATH"],
+            context: "ASC"
         )
+    }
 
-        let issuerID = ProcessInfo.processInfo.environment["ASC_ISSUER_ID"]
-        
-        guard let keyID = ProcessInfo.processInfo.environment["ASC_KEY_ID"], !keyID.isEmpty else {
-            throw AppStoreConnectError.configuration("ASC_KEY_ID environment variable is not set")
+    static func allFromEnvironment() throws -> (orgs: [(name: String, config: Configuration)], defaultOrg: String) {
+        let env = ProcessInfo.processInfo.environment
+
+        var orgNames = Set<String>()
+        for key in env.keys {
+            guard key.hasPrefix("ASC_ORG_") else { continue }
+            let remainder = key.dropFirst("ASC_ORG_".count)
+            for suffix in ["_ISSUER_ID", "_KEY_ID", "_PRIVATE_KEY_PATH", "_AUTH_MODE"] {
+                if remainder.hasSuffix(suffix) {
+                    let name = String(remainder.dropLast(suffix.count))
+                    if !name.isEmpty {
+                        orgNames.insert(name)
+                    }
+                    break
+                }
+            }
         }
-        guard let keyPath = ProcessInfo.processInfo.environment["ASC_PRIVATE_KEY_PATH"], !keyPath.isEmpty else {
-            throw AppStoreConnectError.configuration("ASC_PRIVATE_KEY_PATH environment variable is not set")
+
+        var orgs: [(name: String, config: Configuration)] = []
+
+        if orgNames.isEmpty {
+            let config = try fromEnvironment()
+            orgs.append((name: "default", config: config))
+            return (orgs: orgs, defaultOrg: "default")
         }
-        
+
+        for name in orgNames.sorted() {
+            let prefix = "ASC_ORG_\(name)"
+            let config = try buildConfiguration(
+                authModeValue: env["\(prefix)_AUTH_MODE"],
+                issuerID: env["\(prefix)_ISSUER_ID"],
+                keyID: env["\(prefix)_KEY_ID"],
+                keyPath: env["\(prefix)_PRIVATE_KEY_PATH"],
+                context: prefix
+            )
+            orgs.append((name: name, config: config))
+        }
+
+        let defaultOrg = env["ASC_DEFAULT_ORG"] ?? orgs[0].name
+        guard orgs.contains(where: { $0.name == defaultOrg }) else {
+            throw AppStoreConnectError.configuration(
+                "ASC_DEFAULT_ORG '\(defaultOrg)' does not match any configured organization"
+            )
+        }
+
+        return (orgs: orgs, defaultOrg: defaultOrg)
+    }
+
+    private static func buildConfiguration(
+        authModeValue: String?,
+        issuerID: String?,
+        keyID: String?,
+        keyPath: String?,
+        context: String
+    ) throws -> Configuration {
+        let authMode = try AuthMode.fromEnvironment(authModeValue)
+
+        guard let keyID, !keyID.isEmpty else {
+            throw AppStoreConnectError.configuration("\(context)_KEY_ID environment variable is not set")
+        }
+        guard let keyPath, !keyPath.isEmpty else {
+            throw AppStoreConnectError.configuration("\(context)_PRIVATE_KEY_PATH environment variable is not set")
+        }
+
         switch authMode {
         case .team:
             guard let issuerID, !issuerID.isEmpty else {
                 throw AppStoreConnectError.configuration(
-                    "ASC_ISSUER_ID environment variable is required when ASC_AUTH_MODE=team"
+                    "\(context)_ISSUER_ID is required when auth mode is team"
                 )
             }
             return Configuration(
