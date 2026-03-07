@@ -6,7 +6,6 @@ struct StderrLogHandler: LogHandler {
     var logLevel: Logger.Level = .info
 
     private let label: String
-    private let lock = NSLock()
 
     init(label: String) {
         self.label = label
@@ -33,9 +32,7 @@ struct StderrLogHandler: LogHandler {
 
         let output = "[\(timestamp)] [\(level)] [\(label)] \(message)\(kvSuffix)\n"
 
-        lock.lock()
         FileHandle.standardError.write(Data(output.utf8))
-        lock.unlock()
     }
 
     private static func formatTimestamp() -> String {
