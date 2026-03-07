@@ -41,6 +41,8 @@ enum Endpoints {
             URLQueryItem(name: "filter[app]", value: appID),
             URLQueryItem(name: "limit", value: String(limit)),
             URLQueryItem(name: "sort", value: "-uploadedDate"),
+            URLQueryItem(name: "include", value: "preReleaseVersion"),
+            URLQueryItem(name: "fields[preReleaseVersions]", value: "version"),
         ]
         return components.url!
     }

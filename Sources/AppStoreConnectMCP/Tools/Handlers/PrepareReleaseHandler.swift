@@ -275,9 +275,18 @@ struct PrepareReleaseHandler {
             as: APIListResponse<Build>.self
         )
 
+        let marketingVersionByID: [String: String] = Dictionary(
+            uniqueKeysWithValues: (response.included ?? []).compactMap { prv in
+                guard let version = prv.attributes.version else { return nil }
+                return (prv.id, version)
+            }
+        )
+
         let candidate = response.data
             .filter { build in
-                build.attributes.version == versionString
+                let prvID = build.relationships?.preReleaseVersion?.data?.id
+                let marketingVersion = prvID.flatMap { marketingVersionByID[$0] }
+                return marketingVersion == versionString
                     && build.attributes.processingState == "VALID"
             }
             .sorted(by: compareBuilds)
