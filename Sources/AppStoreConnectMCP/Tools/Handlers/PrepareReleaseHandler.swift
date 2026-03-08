@@ -28,7 +28,7 @@ struct PrepareReleaseHandler {
         )
 
         let existingVersions = versionsResponse.data
-        let previousVersion = selectPreviousVersion(from: existingVersions, excluding: versionString)
+        let previousVersion = selectPreviousVersion(from: existingVersions, for: versionString)
 
         var createdVersion = false
         let targetVersion: AppStoreVersion
@@ -270,32 +270,21 @@ struct PrepareReleaseHandler {
         versionString: String,
         buildLimit: Int
     ) async throws -> StepOutcome {
-        let response = try await client.get(
-            Endpoints.builds(appID: appID, limit: buildLimit),
-            as: APIListResponse<Build>.self
+        let builds = try await listBuilds(
+            appID: appID,
+            forMarketingVersion: versionString,
+            limit: buildLimit
         )
 
-        let marketingVersionByID: [String: String] = Dictionary(
-            uniqueKeysWithValues: (response.included ?? []).compactMap { prv in
-                guard let version = prv.attributes.version else { return nil }
-                return (prv.id, version)
-            }
-        )
-
-        let candidate = response.data
-            .filter { build in
-                let prvID = build.relationships?.preReleaseVersion?.data?.id
-                let marketingVersion = prvID.flatMap { marketingVersionByID[$0] }
-                return marketingVersion == versionString
-                    && build.attributes.processingState == "VALID"
-            }
+        let candidate = builds
+            .filter { $0.attributes.processingState == "VALID" }
             .sorted(by: compareBuilds)
             .first
 
         guard let candidate else {
             return StepOutcome(
                 ready: [],
-                missing: ["No VALID build found for version \(versionString) in the latest \(buildLimit) build(s)"]
+                missing: ["No VALID build found after inspecting up to \(buildLimit) build(s) for version \(versionString)"]
             )
         }
 
@@ -308,6 +297,42 @@ struct PrepareReleaseHandler {
         return StepOutcome(ready: [description], missing: [])
     }
 
+    private func listBuilds(
+        appID: String,
+        forMarketingVersion versionString: String,
+        limit: Int
+    ) async throws -> [Build] {
+        let boundedLimit = max(1, limit)
+        let pageSize = min(max(50, boundedLimit), 200)
+        var matchingBuilds: [Build] = []
+        var nextPageURL: URL? = Endpoints.builds(appID: appID, limit: pageSize)
+
+        while let pageURL = nextPageURL, matchingBuilds.count < boundedLimit {
+            let response = try await client.get(pageURL, as: APIListResponse<Build>.self)
+            let marketingVersionByID: [String: String] = Dictionary(
+                uniqueKeysWithValues: (response.included ?? []).compactMap { preReleaseVersion in
+                    guard let version = preReleaseVersion.attributes.version else { return nil }
+                    return (preReleaseVersion.id, version)
+                }
+            )
+
+            let pageMatches = response.data.filter { build in
+                let preReleaseVersionID = build.relationships?.preReleaseVersion?.data?.id
+                let marketingVersion = preReleaseVersionID.flatMap { marketingVersionByID[$0] }
+                return marketingVersion == versionString
+            }
+
+            matchingBuilds.append(contentsOf: pageMatches)
+            nextPageURL = response.nextPageURL
+        }
+
+        if matchingBuilds.count > boundedLimit {
+            return Array(matchingBuilds.prefix(boundedLimit))
+        }
+
+        return matchingBuilds
+    }
+
     private func listLocalizations(versionID: String) async throws -> [AppStoreVersionLocalization] {
         let response = try await client.get(
             Endpoints.appStoreVersionLocalizations(versionID: versionID),
@@ -318,15 +343,34 @@ struct PrepareReleaseHandler {
 
     private func selectPreviousVersion(
         from versions: [AppStoreVersion],
-        excluding targetVersionString: String
+        for targetVersionString: String
     ) -> AppStoreVersion? {
-        versions
-            .filter { $0.attributes.versionString != targetVersionString }
-            .sorted(by: compareVersions)
+        let targetComponents = versionComponents(targetVersionString)
+
+        return versions
+            .filter { version in
+                guard let candidateVersionString = version.attributes.versionString,
+                      candidateVersionString != targetVersionString else {
+                    return false
+                }
+
+                return compareVersionComponents(
+                    versionComponents(candidateVersionString),
+                    targetComponents
+                ) == .orderedAscending
+            }
+            .sorted(by: compareVersionPrecedence)
             .first
     }
 
-    private func compareVersions(_ lhs: AppStoreVersion, _ rhs: AppStoreVersion) -> Bool {
+    private func compareVersionPrecedence(_ lhs: AppStoreVersion, _ rhs: AppStoreVersion) -> Bool {
+        let lhsComponents = versionComponents(lhs.attributes.versionString)
+        let rhsComponents = versionComponents(rhs.attributes.versionString)
+        let versionOrder = compareVersionComponents(lhsComponents, rhsComponents)
+        if versionOrder != .orderedSame {
+            return versionOrder == .orderedDescending
+        }
+
         let lhsDate = parseDate(lhs.attributes.createdDate)
         let rhsDate = parseDate(rhs.attributes.createdDate)
 
@@ -334,13 +378,22 @@ struct PrepareReleaseHandler {
             return lhsDate > rhsDate
         }
 
-        let lhsComponents = versionComponents(lhs.attributes.versionString)
-        let rhsComponents = versionComponents(rhs.attributes.versionString)
-        if lhsComponents != rhsComponents {
-            return lhsComponents.lexicographicallyPrecedes(rhsComponents, by: >)
+        return lhs.id > rhs.id
+    }
+
+    private func compareVersionComponents(_ lhs: [Int], _ rhs: [Int]) -> ComparisonResult {
+        let maxComponentCount = max(lhs.count, rhs.count)
+
+        for index in 0..<maxComponentCount {
+            let lhsValue = index < lhs.count ? lhs[index] : 0
+            let rhsValue = index < rhs.count ? rhs[index] : 0
+
+            if lhsValue != rhsValue {
+                return lhsValue < rhsValue ? .orderedAscending : .orderedDescending
+            }
         }
 
-        return lhs.id > rhs.id
+        return .orderedSame
     }
 
     private func compareBuilds(_ lhs: Build, _ rhs: Build) -> Bool {
