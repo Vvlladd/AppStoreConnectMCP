@@ -38,6 +38,14 @@ actor OrganizationRegistry {
         return name
     }
 
+    func clientAndOrgName(for orgName: String?) throws -> (client: AppStoreConnectClient, orgName: String) {
+        let name = orgName ?? defaultOrgName
+        guard let org = organizations[name] else {
+            throw AppStoreConnectError.unknownOrganization(name)
+        }
+        return (org.client, name)
+    }
+
     func setDefault(_ name: String) throws {
         guard organizations[name] != nil else {
             throw AppStoreConnectError.unknownOrganization(name)
