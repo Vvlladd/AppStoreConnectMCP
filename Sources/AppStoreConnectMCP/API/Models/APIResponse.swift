@@ -6,6 +6,7 @@ struct APIResponse<T: Decodable & Sendable>: Decodable, Sendable {
 
 struct APIListResponse<T: Decodable & Sendable>: Decodable, Sendable {
     let data: [T]
+    let included: [PreReleaseVersion]?
     let links: Links?
     let meta: Meta?
 

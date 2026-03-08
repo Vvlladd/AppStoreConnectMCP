@@ -9,6 +9,7 @@ enum ToolDefinitions {
         addLocalization,
         listBuilds,
         attachBuild,
+        prepareRelease,
         submitForReview,
     ]
 
@@ -112,6 +113,22 @@ enum ToolDefinitions {
                 "build_id": prop("string", "The build ID to attach"),
             ],
             required: ["version_id", "build_id"]
+        )
+    )
+
+    static let prepareRelease = Tool(
+        name: "prepare_release",
+        description: "Check release readiness, create or reuse a version, attach the latest valid build, and ensure metadata is present",
+        inputSchema: schema(
+            properties: [
+                "app_id": prop("string", "The app ID"),
+                "version_string": prop("string", "Version string to prepare (e.g. 1.2.0)"),
+                "platform": prop("string", "Platform: IOS, MAC_OS, TV_OS, VISION_OS"),
+                "copyright": prop("string", "Copyright text to apply if needed"),
+                "release_type": prop("string", "MANUAL, AFTER_APPROVAL, or SCHEDULED"),
+                "build_limit": prop("integer", "How many recent builds to inspect when selecting the latest valid build (default 100)"),
+            ],
+            required: ["app_id", "version_string", "platform"]
         )
     )
 

@@ -54,7 +54,6 @@ actor AppStoreConnectClient {
 
         return allItems
     }
-
     // MARK: - Private
 
     private func performRequest(

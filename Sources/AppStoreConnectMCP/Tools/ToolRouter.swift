@@ -9,6 +9,7 @@ struct ToolRouter {
     private let addLocalization: AddLocalizationHandler
     private let listBuilds: ListBuildsHandler
     private let attachBuild: AttachBuildHandler
+    private let prepareRelease: PrepareReleaseHandler
     private let submitForReview: SubmitForReviewHandler
 
     init(client: AppStoreConnectClient) {
@@ -19,6 +20,7 @@ struct ToolRouter {
         self.addLocalization = AddLocalizationHandler(client: client)
         self.listBuilds = ListBuildsHandler(client: client)
         self.attachBuild = AttachBuildHandler(client: client)
+        self.prepareRelease = PrepareReleaseHandler(client: client)
         self.submitForReview = SubmitForReviewHandler(client: client)
     }
 
@@ -32,6 +34,7 @@ struct ToolRouter {
             case "add_localization": return try await addLocalization.handle(params)
             case "list_builds": return try await listBuilds.handle(params)
             case "attach_build": return try await attachBuild.handle(params)
+            case "prepare_release": return try await prepareRelease.handle(params)
             case "submit_for_review": return try await submitForReview.handle(params)
             default:
                 return CallTool.Result(
