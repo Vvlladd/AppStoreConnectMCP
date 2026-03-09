@@ -47,6 +47,18 @@ enum Endpoints {
         return components.url!
     }
 
+    static func buildUploads() -> URL {
+        URL(string: "\(base)/buildUploads")!
+    }
+
+    static func buildUploadFiles() -> URL {
+        URL(string: "\(base)/buildUploadFiles")!
+    }
+
+    static func buildUploadFile(id: String) -> URL {
+        URL(string: "\(base)/buildUploadFiles/\(id)")!
+    }
+
     static func versionBuildRelationship(versionID: String) -> URL {
         URL(string: "\(base)/appStoreVersions/\(versionID)/relationships/build")!
     }

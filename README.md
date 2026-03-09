@@ -10,6 +10,7 @@ This server exposes App Store Connect operations as MCP tools. When connected to
 - **Manage versions** — Create new App Store versions, update version attributes (copyright, release type)
 - **Manage metadata** — Add or update localized descriptions, keywords, release notes, promotional text, URLs for any locale
 - **Manage builds** — List uploaded builds, attach a build to a version
+- **Upload builds** — Upload an IPA to App Store Connect using the build upload API
 - **Submit for review** — Submit a version to App Review
 
 ### Example Workflow
@@ -17,7 +18,7 @@ This server exposes App Store Connect operations as MCP tools. When connected to
 Tell your AI agent:
 > "Create version 2.1.0 for my app, add Italian localization with description and release notes, attach the latest build, and submit for review."
 
-The agent will call the tools in sequence: `list_apps` → `create_version` → `add_localization` → `list_builds` → `attach_build` → `submit_for_review`.
+The agent will call the tools in sequence: `list_apps` → `create_version` → `add_localization` → `upload_build` → `list_builds` → `attach_build` → `submit_for_review`.
 
 ## Prerequisites
 
@@ -80,6 +81,7 @@ tuist build
 | `update_version` | Update version attributes | `version_id`, `copyright?`, `release_type?` |
 | `add_localization` | Add/update localized metadata | `version_id`, `locale`, `description?`, `keywords?`, `whats_new?`, `promotional_text?`, `marketing_url?`, `support_url?` |
 | `list_builds` | List available builds | `app_id`, `limit?` |
+| `upload_build` | Upload an IPA via the build upload workflow | `app_id`, `ipa_path`, `version_string`, `build_number`, `platform?` |
 | `attach_build` | Attach build to version | `version_id`, `build_id` |
 | `submit_for_review` | Submit version for App Review | `version_id` |
 

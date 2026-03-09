@@ -8,6 +8,7 @@ enum ToolDefinitions {
         updateVersion,
         addLocalization,
         listBuilds,
+        uploadBuild,
         attachBuild,
         prepareRelease,
         submitForReview,
@@ -113,6 +114,23 @@ enum ToolDefinitions {
                 "build_id": prop("string", "The build ID to attach"),
             ],
             required: ["version_id", "build_id"]
+        )
+    )
+
+    static let uploadBuild = Tool(
+        name: "upload_build",
+        description: "Create a build upload, upload an IPA file, and mark the upload complete",
+        inputSchema: schema(
+            properties: [
+                "app_id": prop("string", "The app ID"),
+                "ipa_path": prop("string", "Absolute path to the IPA file"),
+                "version_string": prop("string", "Marketing version for the build upload (e.g. 1.2.0)"),
+                "build_number": prop("string", "Build number for the upload (e.g. 123)"),
+                "platform": prop("string", "Platform: IOS, MAC_OS, TV_OS, VISION_OS (default IOS)"),
+                "asset_type": prop("string", "Build asset type (default ASSET)"),
+                "uti": prop("string", "Uniform type identifier for the file (default com.apple.ipa)"),
+            ],
+            required: ["app_id", "ipa_path", "version_string", "build_number"]
         )
     )
 
