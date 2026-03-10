@@ -11,16 +11,22 @@ enum ToolDefinitions {
         attachBuild,
         prepareRelease,
         submitForReview,
+        listOrgs,
+        setDefaultOrg,
     ]
+
+    private static let orgProp = prop("string", "Organization name (optional, uses default if omitted)")
 
     private static func prop(_ type: String, _ description: String) -> Value {
         .object(["type": .string(type), "description": .string(description)])
     }
 
     private static func schema(properties: [String: Value], required: [String] = []) -> Value {
+        var props = properties
+        props["org"] = orgProp
         var obj: [String: Value] = [
             "type": .string("object"),
-            "properties": .object(properties),
+            "properties": .object(props),
         ]
         if !required.isEmpty {
             obj["required"] = .array(required.map { .string($0) })
@@ -141,5 +147,26 @@ enum ToolDefinitions {
             ],
             required: ["version_id"]
         )
+    )
+
+    static let listOrgs = Tool(
+        name: "list_orgs",
+        description: "List all configured App Store Connect organizations",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([:]),
+        ])
+    )
+
+    static let setDefaultOrg = Tool(
+        name: "set_default_org",
+        description: "Set the default organization for subsequent tool calls",
+        inputSchema: .object([
+            "type": .string("object"),
+            "properties": .object([
+                "org_name": prop("string", "The organization name to set as default"),
+            ]),
+            "required": .array([.string("org_name")]),
+        ])
     )
 }
