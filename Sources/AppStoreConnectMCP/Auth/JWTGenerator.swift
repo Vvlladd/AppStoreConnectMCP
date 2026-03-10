@@ -1,5 +1,6 @@
 import Foundation
 import CryptoKit
+import Logging
 
 actor JWTGenerator {
     private static let tokenLifetime: TimeInterval = 20 * 60
@@ -8,30 +9,36 @@ actor JWTGenerator {
     private let keyID: String
     private let issuerID: String?
     private let privateKey: P256.Signing.PrivateKey
+    private let logger: Logger
 
     private var cachedToken: String?
     private var tokenExpiry: Date?
 
-    init(configuration: Configuration) throws {
+    init(configuration: Configuration, logger: Logger = Logger(label: "appstoreconnect.jwt")) throws {
         self.authMode = configuration.authMode
         self.keyID = configuration.keyID
         self.issuerID = configuration.issuerID
+        self.logger = logger
 
         let keyData = try Self.loadPrivateKey(at: configuration.privateKeyPath)
         self.privateKey = try P256.Signing.PrivateKey(derRepresentation: keyData)
+        logger.info("Private key loaded", metadata: ["authMode": "\(configuration.authMode.rawValue)"])
     }
 
     func token() throws -> String {
         if let cached = cachedToken, let expiry = tokenExpiry, Date() < expiry.addingTimeInterval(-60) {
+            logger.debug("JWT cache hit")
             return cached
         }
         let newToken = try generateToken()
         cachedToken = newToken
         tokenExpiry = Date().addingTimeInterval(Self.tokenLifetime)
+        logger.info("JWT token generated")
         return newToken
     }
 
     func forceRefresh() throws -> String {
+        logger.info("JWT forced refresh")
         cachedToken = nil
         tokenExpiry = nil
         return try token()

@@ -1,16 +1,19 @@
 import Foundation
+import Logging
 
 actor AppStoreConnectClient {
     private let jwtGenerator: JWTGenerator
     private let session: URLSession
     private let decoder: JSONDecoder
     private let encoder: JSONEncoder
+    private let logger: Logger
 
-    init(jwtGenerator: JWTGenerator) {
+    init(jwtGenerator: JWTGenerator, logger: Logger = Logger(label: "appstoreconnect.http")) {
         self.jwtGenerator = jwtGenerator
         self.session = URLSession.shared
         self.decoder = JSONDecoder()
         self.encoder = JSONEncoder()
+        self.logger = logger
     }
 
     // MARK: - Generic Requests
@@ -86,9 +89,11 @@ actor AppStoreConnectClient {
         }
 
         let statusCode = httpResponse.statusCode
+        logger.info("\(method) \(url.path) -> \(statusCode)")
 
         // 401 → refresh JWT and retry once
         if statusCode == 401 && !authRetried {
+            logger.warning("401 Unauthorized, refreshing JWT and retrying")
             _ = try await jwtGenerator.forceRefresh()
             return try await performRequest(
                 url: url, method: method, body: body,
@@ -100,6 +105,7 @@ actor AppStoreConnectClient {
         if statusCode == 429 && !rateLimitRetried {
             let retryAfter = httpResponse.value(forHTTPHeaderField: "Retry-After")
                 .flatMap(Double.init) ?? 5.0
+            logger.warning("429 Rate limited, retrying after \(retryAfter)s")
             try await Task.sleep(nanoseconds: UInt64(retryAfter * 1_000_000_000))
             return try await performRequest(
                 url: url, method: method, body: body,

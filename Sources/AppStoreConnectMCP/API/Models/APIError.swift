@@ -8,6 +8,7 @@ enum AppStoreConnectError: Error, LocalizedError {
     case apiError(String)
     case decoding(String)
     case invalidArgument(String)
+    case unknownOrganization(String)
 
     var errorDescription: String? {
         switch self {
@@ -18,6 +19,7 @@ enum AppStoreConnectError: Error, LocalizedError {
         case .apiError(let msg): return "API error: \(msg)"
         case .decoding(let msg): return "Decoding error: \(msg)"
         case .invalidArgument(let msg): return "Invalid argument: \(msg)"
+        case .unknownOrganization(let name): return "Unknown organization: \(name)"
         }
     }
 }
