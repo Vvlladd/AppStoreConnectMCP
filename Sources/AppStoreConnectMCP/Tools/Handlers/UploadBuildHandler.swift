@@ -165,9 +165,9 @@ struct UploadBuildHandler {
             guard let chunk = try fileHandle.read(upToCount: readLength), chunk.count == readLength else {
                 throw AppStoreConnectError.apiError("Failed to read upload chunk from IPA")
             }
-            let headers = Dictionary(
-                uniqueKeysWithValues: (operation.requestHeaders ?? []).map { ($0.name, $0.value) }
-            )
+            let headers = (operation.requestHeaders ?? []).reduce(into: [String: String]()) { result, header in
+                result[header.name] = header.value
+            }
 
             try await client.upload(url, method: method, headers: headers, body: chunk)
         }
