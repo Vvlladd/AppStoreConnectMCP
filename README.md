@@ -141,6 +141,13 @@ Sources/AppStoreConnectMCP/
     Handlers/                   — One handler per tool
 ```
 
+## Reporting Issues
+
+The GitHub Issues tab is disabled for security reasons. To report a bug or request a feature, please reach out directly to one of the maintainers:
+
+- [Vlad](https://github.com/Vvlladd)
+- [Max](https://github.com/maxhartung)
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding new tools and development workflow.
