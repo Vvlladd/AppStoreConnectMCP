@@ -44,6 +44,10 @@ actor AppStoreConnectClient {
         _ = try await performRequest(url: url, method: "PATCH", body: bodyData)
     }
 
+    func upload(_ url: URL, method: String, headers: [String: String], body: Data) async throws {
+        _ = try await performExternalRequest(url: url, method: method, headers: headers, body: body)
+    }
+
     /// Fetches all pages of a paginated list endpoint, returning the combined data array.
     func getAll<T: Decodable & Sendable>(_ url: URL, as type: APIListResponse<T>.Type) async throws -> [T] {
         var allItems: [T] = []
@@ -126,5 +130,33 @@ actor AppStoreConnectClient {
         } catch {
             throw AppStoreConnectError.decoding(error.localizedDescription)
         }
+    }
+
+    private func performExternalRequest(
+        url: URL, method: String, headers: [String: String], body: Data? = nil
+    ) async throws -> Data {
+        var request = URLRequest(url: url)
+        request.httpMethod = method
+
+        for (name, value) in headers {
+            request.setValue(value, forHTTPHeaderField: name)
+        }
+
+        if let body {
+            request.httpBody = body
+        }
+
+        let (data, response) = try await session.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw AppStoreConnectError.httpError(statusCode: 0, body: "Invalid response")
+        }
+
+        guard (200...299).contains(httpResponse.statusCode) else {
+            let bodyString = String(data: data, encoding: .utf8) ?? "No body"
+            throw AppStoreConnectError.httpError(statusCode: httpResponse.statusCode, body: bodyString)
+        }
+
+        return data
     }
 }
