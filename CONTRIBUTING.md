@@ -1,16 +1,14 @@
-# unPi way of working
+# Contributing
 
-1. Branching: 
+## Branching
 
-  <img width="1193" alt="Screenshot 2023-09-21 at 14 22 54" src="https://github.com/unPi-ro/template/assets/88333833/b5269f3c-7ac7-4dc9-827e-92f7a391c969">
+- Branch off `main` for all changes
+- Use descriptive branch names:
 
-2. Branch naming example:
+      feature/add-list-reviews-tool
+      bugfix/fix-jwt-expiry-handling
 
-     feature/add-human-cats-and-dogs-classifier
-   
-     bugfix/change-main-button-size
-      
-4. At least one approval from [Vlad](https://github.com/Vvlladd) or [Max](https://github.com/maxhartung) is required
+- At least one approval from [Vlad](https://github.com/Vvlladd) or [Max](https://github.com/maxhartung) is required is required before merging
 
 ---
 
@@ -18,7 +16,7 @@
 
 1. Clone the repo
 2. Run `./bootstrap.sh` to install Tuist, fetch dependencies, and open in Xcode
-3. Set environment variables (see README.md)
+3. Set environment variables (see README.md and the [Multi-Org Support](#multi-org-support) section below)
 4. Build with `tuist build` or `Cmd+B` in Xcode
 
 ## Adding a New MCP Tool
@@ -53,17 +51,22 @@ static func myResource(appID: String) -> URL {
 
 ### 3. Handler (`Tools/Handlers/`)
 
-Create a new handler file:
+Create a new handler file. Most tools accept an optional `org` parameter — pass it through to `OrganizationRegistry` to resolve the correct client:
 
 ```swift
 struct MyToolHandler {
-    let client: AppStoreConnectClient
+    let registry: OrganizationRegistry
 
     func handle(_ params: CallTool.Parameters) async throws -> CallTool.Result {
         guard let args = params.arguments,
               case .string(let appID) = args["app_id"] else {
             throw AppStoreConnectError.invalidArgument("app_id is required")
         }
+
+        // Resolve org (nil = use default)
+        let orgID: String?
+        if case .string(let o) = args["org"] { orgID = o } else { orgID = nil }
+        let client = try await registry.client(for: orgID)
 
         let response = try await client.get(
             Endpoints.myResource(appID: appID),
@@ -106,6 +109,29 @@ self.myTool = MyToolHandler(client: client)
 // In route():
 case "my_tool": return try await myTool.handle(params)
 ```
+
+## Multi-Org Support
+
+The server supports multiple App Store Connect organizations in a single instance. All tools (except `list_orgs` and `set_default_org`) accept an optional `org` parameter.
+
+**Environment variables** — configure one or more orgs using the `ASC_ORG_<name>_*` prefix:
+
+```bash
+ASC_ORG_acme_ISSUER_ID=xxx
+ASC_ORG_acme_KEY_ID=yyy
+ASC_ORG_acme_PRIVATE_KEY_PATH=/path/to/acme.p8
+ASC_ORG_acme_AUTH_MODE=team       # "team" (default) or "individual"
+
+ASC_ORG_startup_ISSUER_ID=aaa
+ASC_ORG_startup_KEY_ID=bbb
+ASC_ORG_startup_PRIVATE_KEY_PATH=/path/to/startup.p8
+
+ASC_DEFAULT_ORG=acme              # optional, defaults to first org alphabetically
+```
+
+When multi-org vars are present, the legacy single-org vars (`ASC_ISSUER_ID`, `ASC_KEY_ID`, `ASC_PRIVATE_KEY_PATH`) are ignored.
+
+Use `list_orgs` to inspect configured organizations and `set_default_org` to change the default at runtime.
 
 ## Code Guidelines
 
