@@ -1,91 +1,56 @@
 # App Store Connect MCP Server
 
-An MCP (Model Context Protocol) server built in Swift that lets AI agents (Claude Code, Claude Desktop, Cursor, etc.) automate App Store Connect tasks via the [App Store Connect REST API](https://developer.apple.com/documentation/appstoreconnectapi).
+**Automate App Store Connect from your AI agent.**
 
-## What It Does
+## Overview
 
-This server exposes App Store Connect operations as MCP tools. When connected to an AI agent, you can use natural language to:
+This MCP server lets AI agents like Claude Code, Claude Desktop, and Cursor manage your App Store Connect workflows through natural language. Create versions, update metadata, attach builds, and submit for review — all without leaving your editor.
 
-- **List your apps** — See all apps in your App Store Connect account
-- **Manage versions** — Create new App Store versions, update version attributes (copyright, release type)
-- **Manage metadata** — Add or update localized descriptions, keywords, release notes, promotional text, URLs for any locale
-- **Manage builds** — List uploaded builds, attach a build to a version
-- **Upload builds** — Upload an IPA to App Store Connect using the build upload API
-- **Submit for review** — Submit a version to App Review
+Built in Swift with the [MCP Swift SDK](https://github.com/modelcontextprotocol/swift-sdk), it connects directly to the [App Store Connect REST API](https://developer.apple.com/documentation/appstoreconnectapi) using ES256 JWT authentication.
 
-### Example Workflow
+## Key Features
 
-Tell your AI agent:
-> "Create version 2.1.0 for my app, add Italian localization with description and release notes, attach the latest build, and submit for review."
+- **Version management** — Create, update, and list App Store versions
+- **Localized metadata** — Add descriptions, keywords, release notes, and URLs for any locale
+- **Build management** — List builds, upload IPAs, and attach builds to versions
+- **Review submission** — Submit versions to App Review in one step
+- **Multi-organization** — Manage multiple App Store Connect teams from a single server
+- **Secure auth** — ES256 JWT signing via Apple CryptoKit with automatic token refresh
 
-The agent will call the tools in sequence: `list_apps` → `create_version` → `add_localization` → `upload_build` → `list_builds` → `attach_build` → `submit_for_review`.
+## Quick Start
 
-## Prerequisites
+### Prerequisites
 
-- Swift 6.0+ / Xcode 16+
-- macOS 13+
-- Tuist 4.x (`brew install tuist`)
+- macOS 13+, Swift 6.0+ / Xcode 16+
+- [Tuist 4.x](https://docs.tuist.io/guides/quick-start/install-tuist) (`brew install tuist`)
 - An [App Store Connect API key](https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api) with **App Manager** role or higher
 
-## Setup
-
-### 1. Bootstrap
+### Install
 
 ```bash
 ./bootstrap.sh
 ```
 
-This installs Tuist if needed, fetches dependencies, and opens the project in Xcode.
-
-Or manually:
+This fetches dependencies, generates the Xcode project, and builds. Or manually:
 
 ```bash
-tuist install
-tuist generate
+tuist install && tuist generate && tuist build
 ```
 
-### 2. Environment Variables
+### Configure
 
-Set these before running:
+Set your API credentials:
 
 ```bash
-export ASC_AUTH_MODE="team" # or "individual"; default is "team"
 export ASC_KEY_ID="your-key-id"
 export ASC_PRIVATE_KEY_PATH="/path/to/AuthKey_XXXXXX.p8"
+export ASC_ISSUER_ID="your-issuer-id"       # required for team keys
+export ASC_AUTH_MODE="team"                  # "team" (default) or "individual"
 ```
 
-For team keys, also set:
+Get these values from [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api). For individual keys, set `ASC_AUTH_MODE="individual"` and omit `ASC_ISSUER_ID`.
 
-```bash
-export ASC_ISSUER_ID="your-issuer-id"
-```
-
-Use values from [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api).
-For individual keys, set `ASC_AUTH_MODE="individual"` and do not set `ASC_ISSUER_ID`.
-
-### 3. Build & Run
-
-Build in Xcode (`Cmd+B`) or via CLI:
-
-```bash
-tuist build
-```
-
-## Available Tools
-
-| Tool | Description | Key Params |
-|------|-------------|------------|
-| `list_apps` | List all apps in account | — |
-| `create_version` | Create new App Store version | `app_id`, `version_string`, `platform` |
-| `list_versions` | List existing versions for an app | `app_id`, `platform?` |
-| `update_version` | Update version attributes | `version_id`, `copyright?`, `release_type?` |
-| `add_localization` | Add/update localized metadata | `version_id`, `locale`, `description?`, `keywords?`, `whats_new?`, `promotional_text?`, `marketing_url?`, `support_url?` |
-| `list_builds` | List available builds | `app_id`, `limit?` |
-| `upload_build` | Upload an IPA via the build upload workflow | `app_id`, `ipa_path`, `version_string`, `build_number`, `platform?` |
-| `attach_build` | Attach build to version | `version_id`, `build_id` |
-| `submit_for_review` | Submit version for App Review | `version_id` |
-
-## Claude Code Configuration
+### Connect to Claude Code
 
 Add to `~/.claude.json` (global) or `.claude/settings.json` (project):
 
@@ -95,146 +60,93 @@ Add to `~/.claude.json` (global) or `.claude/settings.json` (project):
     "appstoreconnect": {
       "command": "/path/to/AppStoreConnectMCP/.build/debug/AppStoreConnectMCP",
       "env": {
-        "ASC_AUTH_MODE": "team",
-        "ASC_ISSUER_ID": "your-issuer-id",
         "ASC_KEY_ID": "your-key-id",
-        "ASC_PRIVATE_KEY_PATH": "/path/to/AuthKey.p8"
+        "ASC_PRIVATE_KEY_PATH": "/path/to/AuthKey.p8",
+        "ASC_ISSUER_ID": "your-issuer-id",
+        "ASC_AUTH_MODE": "team"
       }
     }
   }
 }
 ```
 
+Then ask your agent something like:
+
+> "Create version 2.1.0 for my app, add Italian localization with description and release notes, attach the latest build, and submit for review."
+
+## Available Tools
+
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| `list_apps` | List all apps in your account | — |
+| `create_version` | Create a new App Store version | `app_id`, `version_string`, `platform` |
+| `list_versions` | List existing versions for an app | `app_id`, `platform?` |
+| `update_version` | Update version attributes | `version_id`, `copyright?`, `release_type?` |
+| `add_localization` | Add/update localized metadata | `version_id`, `locale`, `description?`, `keywords?`, `whats_new?`, `promotional_text?`, `marketing_url?`, `support_url?` |
+| `list_builds` | List available builds | `app_id`, `limit?` |
+| `upload_build` | Upload an IPA to App Store Connect | `app_id`, `ipa_path`, `version_string`, `build_number`, `platform?` |
+| `attach_build` | Attach a build to a version | `version_id`, `build_id` |
+| `submit_for_review` | Submit a version for App Review | `version_id` |
+| `list_orgs` | List configured organizations | — |
+| `set_default_org` | Change the default organization | `org` |
+
+All tools (except `list_orgs` and `set_default_org`) accept an optional `org` parameter to target a specific organization.
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `ASC_KEY_ID` | API key ID | Yes |
+| `ASC_PRIVATE_KEY_PATH` | Path to `.p8` private key file | Yes |
+| `ASC_ISSUER_ID` | API issuer ID | Team keys only |
+| `ASC_AUTH_MODE` | `team` (default) or `individual` | No |
+
+## Multi-Organization Support
+
+Manage multiple App Store Connect teams by setting org-prefixed environment variables:
+
+```bash
+ASC_ORG_acme_ISSUER_ID=xxx
+ASC_ORG_acme_KEY_ID=yyy
+ASC_ORG_acme_PRIVATE_KEY_PATH=/path/to/acme.p8
+ASC_ORG_acme_AUTH_MODE=team
+
+ASC_ORG_startup_ISSUER_ID=aaa
+ASC_ORG_startup_KEY_ID=bbb
+ASC_ORG_startup_PRIVATE_KEY_PATH=/path/to/startup.p8
+
+ASC_DEFAULT_ORG=acme   # optional, defaults to first org alphabetically
+```
+
+When multi-org variables are present, single-org variables are ignored. Use `list_orgs` to see configured organizations and `set_default_org` to switch at runtime.
+
 ## Architecture
 
 ```
 Sources/AppStoreConnectMCP/
-  main.swift                          # Entry point — server + stdio transport
-  Configuration.swift                 # Loads env vars
-  Auth/
-    JWTGenerator.swift                # ES256 JWT signing with Apple CryptoKit
+  main.swift                    — Entry point: server + stdio transport
+  Configuration.swift           — Environment variable loading
+  OrganizationRegistry.swift    — Multi-org registry (actor)
+  Auth/JWTGenerator.swift       — ES256 JWT token generation
+  Logging/MCPLogger.swift       — Stderr-based structured logging
   API/
-    AppStoreConnectClient.swift       # HTTP client (URLSession, auto-retry on 401/429)
-    Endpoints.swift                   # URL builders for each API endpoint
-    Models/                           # Codable request/response types
-      App.swift
-      AppStoreVersion.swift
-      AppStoreVersionLocalization.swift
-      Build.swift
-      Submission.swift
-      APIResponse.swift               # Generic JSON:API wrappers
-      APIError.swift                  # Error enum
+    AppStoreConnectClient.swift — HTTP client with auto-retry (401/429)
+    Endpoints.swift             — URL builders
+    Models/                     — Codable request/response types (JSON:API)
   Tools/
-    ToolDefinitions.swift             # MCP tool schemas (JSON Schema)
-    ToolRouter.swift                  # Dispatches tool calls to handlers
-    Handlers/                         # One handler per tool
-      ListAppsHandler.swift
-      CreateVersionHandler.swift
-      ...
+    ToolDefinitions.swift       — MCP tool schemas
+    ToolRouter.swift            — Tool call dispatch
+    Handlers/                   — One handler per tool
 ```
 
-## Adding New Tools
+## Contributing
 
-To add a new capability (e.g. managing screenshots, app pricing, or in-app purchases):
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on adding new tools and development workflow.
 
-### 1. Add the API model
+## Links
 
-Create a new file in `API/Models/` with the Codable structs for the API response:
-
-```swift
-// API/Models/AppPrice.swift
-struct AppPrice: Decodable, Sendable {
-    let type: String
-    let id: String
-    let attributes: Attributes
-
-    struct Attributes: Decodable, Sendable {
-        // fields from the API
-    }
-}
-```
-
-### 2. Add the endpoint
-
-Add a new static method in `API/Endpoints.swift`:
-
-```swift
-static func appPrices(appID: String) -> URL {
-    URL(string: "\(base)/apps/\(appID)/prices")!
-}
-```
-
-### 3. Create the handler
-
-Add a new file in `Tools/Handlers/`:
-
-```swift
-// Tools/Handlers/ListPricesHandler.swift
-struct ListPricesHandler {
-    let client: AppStoreConnectClient
-
-    func handle(_ params: CallTool.Parameters) async throws -> CallTool.Result {
-        guard let args = params.arguments,
-              case .string(let appID) = args["app_id"] else {
-            throw AppStoreConnectError.invalidArgument("app_id is required")
-        }
-
-        let response = try await client.get(
-            Endpoints.appPrices(appID: appID),
-            as: APIListResponse<AppPrice>.self
-        )
-
-        // Format output as text
-        let output = response.data.map { "\($0.id): ..." }.joined(separator: "\n")
-        return CallTool.Result(content: [.text(output)])
-    }
-}
-```
-
-### 4. Register the tool schema
-
-Add the tool definition in `Tools/ToolDefinitions.swift`:
-
-```swift
-static let listPrices = Tool(
-    name: "list_prices",
-    description: "List price tiers for an app",
-    inputSchema: schema(
-        properties: [
-            "app_id": prop("string", "The app ID"),
-        ],
-        required: ["app_id"]
-    )
-)
-```
-
-And add it to `allTools`:
-
-```swift
-static let allTools: [Tool] = [
-    // ... existing tools
-    listPrices,
-]
-```
-
-### 5. Wire it up in the router
-
-Add the handler and case in `Tools/ToolRouter.swift`:
-
-```swift
-private let listPrices: ListPricesHandler
-
-// In init:
-self.listPrices = ListPricesHandler(client: client)
-
-// In route():
-case "list_prices": return try await listPrices.handle(params)
-```
-
-That's it — rebuild and the new tool is available to any connected AI agent.
-
-### Useful API References
-
-- [App Store Connect API docs](https://developer.apple.com/documentation/appstoreconnectapi)
-- [API endpoint reference](https://developer.apple.com/documentation/appstoreconnectapi/app_store)
+- [App Store Connect API documentation](https://developer.apple.com/documentation/appstoreconnectapi)
 - [MCP Swift SDK](https://github.com/modelcontextprotocol/swift-sdk)
+- [Model Context Protocol specification](https://modelcontextprotocol.io)
