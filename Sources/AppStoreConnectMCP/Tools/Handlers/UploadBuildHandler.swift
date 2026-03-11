@@ -63,6 +63,7 @@ struct UploadBuildHandler {
 
         try await upload(fileURL: fileURL, fileSize: fileSize, using: uploadOperations)
         let committedBuildUploadFile = try await markBuildUploadFileUploaded(buildUploadFileID: buildUploadFile.id)
+        try ensureUploadSucceeded(committedBuildUploadFile)
 
         let buildState = buildUpload.attributes?.state?.state ?? "created"
         let fileState = committedBuildUploadFile.attributes?.assetDeliveryState?.state ?? "uploaded"
@@ -194,5 +195,49 @@ struct UploadBuildHandler {
             return value
         }
         return nil
+    }
+
+    private func ensureUploadSucceeded(_ buildUploadFile: BuildUploadFile) throws {
+        guard let assetDeliveryState = buildUploadFile.attributes?.assetDeliveryState else {
+            return
+        }
+
+        let normalizedState = assetDeliveryState.state
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .uppercased()
+        guard isFailureState(normalizedState) else {
+            return
+        }
+
+        let errorDetails = assetDeliveryState.errors.map { message in
+            [
+                message.code.map { "code=\($0)" },
+                message.title.map { "title=\($0)" },
+                message.detail.map { "detail=\($0)" },
+            ]
+            .compactMap { $0 }
+            .joined(separator: ", ")
+        }
+        .filter { !$0.isEmpty }
+
+        let detailsText = errorDetails.isEmpty
+            ? "No validation details were provided by App Store Connect."
+            : errorDetails.joined(separator: "; ")
+
+        throw AppStoreConnectError.apiError(
+            "Build upload file [\(buildUploadFile.id)] failed with assetDeliveryState=\(assetDeliveryState.state). \(detailsText)"
+        )
+    }
+
+    private func isFailureState(_ normalizedState: String) -> Bool {
+        let explicitFailureStates: Set<String> = [
+            "FAILED",
+            "FAILURE",
+            "ERROR",
+            "INVALID",
+        ]
+        return explicitFailureStates.contains(normalizedState)
+            || normalizedState.contains("FAIL")
+            || normalizedState.contains("ERROR")
     }
 }
