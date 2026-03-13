@@ -5,6 +5,7 @@ import MCP
 LoggingSystem.bootstrap { StderrLogHandler(label: $0) }
 
 let logger = Logger(label: "appstoreconnect.main")
+let runtimeVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0.0.0"
 
 do {
     let (orgConfigs, defaultOrg) = try Configuration.allFromEnvironment()
@@ -32,7 +33,7 @@ do {
 
     let server = Server(
         name: "appstoreconnect",
-        version: "1.1.0",
+        version: runtimeVersion,
         capabilities: .init(logging: .init(), tools: .init())
     )
 
