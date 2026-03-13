@@ -26,3 +26,7 @@ Package.resolved
 # Build artifacts
 DerivedData/
 build/
+
+# npm packaging artifacts
+dist/AppStoreConnectMCP
+*.tgz

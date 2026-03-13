@@ -1,0 +1,53 @@
+{
+  "name": "@vvlladd/appstoreconnect-mcp",
+  "version": "1.1.0",
+  "description": "MCP server for App Store Connect automation.",
+  "license": "MIT",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Vvlladd/AppStoreConnectMCP.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Vvlladd/AppStoreConnectMCP/issues"
+  },
+  "homepage": "https://github.com/Vvlladd/AppStoreConnectMCP#readme",
+  "keywords": [
+    "mcp",
+    "app-store-connect",
+    "appstoreconnect",
+    "claude",
+    "cursor",
+    "ai-agent"
+  ],
+  "mcpName": "io.github.vvlladd/appstoreconnect-mcp",
+  "bin": {
+    "appstoreconnect-mcp": "dist/AppStoreConnectMCP"
+  },
+  "files": [
+    "dist/AppStoreConnectMCP",
+    "README.md",
+    "server.json"
+  ],
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64",
+    "arm64"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build:universal": "./scripts/build-universal-binary.sh",
+    "version:sync": "node ./scripts/sync-version.mjs",
+    "metadata:check": "./scripts/validate-metadata.sh",
+    "prepack": "npm run build:universal && ./scripts/prepare-npm-package.sh && npm run metadata:check",
+    "pack:dry": "npm pack --dry-run",
+    "pack": "npm pack"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

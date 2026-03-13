@@ -17,7 +17,9 @@ Built in Swift with the [MCP Swift SDK](https://github.com/modelcontextprotocol/
 - **Multi-organization** — Manage multiple App Store Connect teams from a single server
 - **Secure auth** — ES256 JWT signing via Apple CryptoKit with automatic token refresh
 
-## Quick Start
+## Build From Source (Setup)
+
+Use this path if you want to work on or build this repository locally.
 
 ### Prerequisites
 
@@ -25,7 +27,7 @@ Built in Swift with the [MCP Swift SDK](https://github.com/modelcontextprotocol/
 - [Tuist 4.x](https://docs.tuist.io/guides/quick-start/install-tuist) (`brew install tuist`)
 - An [App Store Connect API key](https://developer.apple.com/documentation/appstoreconnectapi/creating_api_keys_for_app_store_connect_api) with **App Manager** role or higher
 
-### Install
+### Install and Build
 
 ```bash
 ./bootstrap.sh
@@ -50,15 +52,31 @@ export ASC_AUTH_MODE="team"                  # "team" (default) or "individual"
 
 Get these values from [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api). For individual keys, set `ASC_AUTH_MODE="individual"` and omit `ASC_ISSUER_ID`.
 
+## Install via npm
+
+Use this path if you only want to run the MCP server and not build from source.
+
+### Prerequisites
+
+- Node.js 18+ and npm
+- macOS
+
+### Install/Run Command
+
+```bash
+npx -y @vvlladd/appstoreconnect-mcp
+```
+
 ### Connect to Claude Code
 
-Add to `~/.claude.json` (global) or `.claude/settings.json` (project):
+Add to `~/.claude.json` (global) or `.claude/settings.json` (project) and use the npm package:
 
 ```json
 {
   "mcpServers": {
     "appstoreconnect": {
-      "command": "/path/to/AppStoreConnectMCP/.build/debug/AppStoreConnectMCP",
+      "command": "npx",
+      "args": ["-y", "@vvlladd/appstoreconnect-mcp"],
       "env": {
         "ASC_KEY_ID": "your-key-id",
         "ASC_PRIVATE_KEY_PATH": "/path/to/AuthKey.p8",

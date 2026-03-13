@@ -1,10 +1,13 @@
 import ProjectDescription
 
+let mcpVersion = "1.1.0"
+
 let project = Project(
     name: "AppStoreConnectMCP",
     settings: .settings(
         base: [
             "SWIFT_VERSION": "6.0",
+            "MARKETING_VERSION": .string(mcpVersion),
         ],
         configurations: [
             .debug(name: "Debug"),
