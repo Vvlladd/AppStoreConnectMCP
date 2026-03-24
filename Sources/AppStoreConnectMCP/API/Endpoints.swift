@@ -66,4 +66,54 @@ enum Endpoints {
     static func appStoreReviewSubmissions() -> URL {
         URL(string: "\(base)/appStoreReviewSubmissions")!
     }
+
+    // MARK: - Diagnostics
+
+    static func diagnosticSignatures(buildID: String, diagnosticType: String? = nil, limit: Int = 10) -> URL {
+        var components = URLComponents(string: "\(base)/builds/\(buildID)/diagnosticSignatures")!
+        var items = [
+            URLQueryItem(name: "limit", value: String(limit)),
+        ]
+        if let diagnosticType {
+            items.append(URLQueryItem(name: "filter[diagnosticType]", value: diagnosticType))
+        }
+        components.queryItems = items
+        return components.url!
+    }
+
+    static func diagnosticLogs(signatureID: String) -> URL {
+        URL(string: "\(base)/diagnosticSignatures/\(signatureID)/logs")!
+    }
+
+    // MARK: - Performance & Power Metrics
+
+    static func perfPowerMetricsForApp(appID: String, metricType: String? = nil, platform: String? = nil) -> URL {
+        var components = URLComponents(string: "\(base)/apps/\(appID)/perfPowerMetrics")!
+        var items: [URLQueryItem] = []
+        if let metricType {
+            items.append(URLQueryItem(name: "filter[metricType]", value: metricType))
+        }
+        if let platform {
+            items.append(URLQueryItem(name: "filter[platform]", value: platform))
+        }
+        if !items.isEmpty {
+            components.queryItems = items
+        }
+        return components.url!
+    }
+
+    static func perfPowerMetricsForBuild(buildID: String, metricType: String? = nil, platform: String? = nil) -> URL {
+        var components = URLComponents(string: "\(base)/builds/\(buildID)/perfPowerMetrics")!
+        var items: [URLQueryItem] = []
+        if let metricType {
+            items.append(URLQueryItem(name: "filter[metricType]", value: metricType))
+        }
+        if let platform {
+            items.append(URLQueryItem(name: "filter[platform]", value: platform))
+        }
+        if !items.isEmpty {
+            components.queryItems = items
+        }
+        return components.url!
+    }
 }

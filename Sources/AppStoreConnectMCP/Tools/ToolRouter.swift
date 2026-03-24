@@ -45,6 +45,9 @@ struct ToolRouter: Sendable {
         case "attach_build": return try await AttachBuildHandler(client: client).handle(params)
         case "prepare_release": return try await PrepareReleaseHandler(client: client).handle(params)
         case "submit_for_review": return try await SubmitForReviewHandler(client: client).handle(params)
+        case "list_diagnostic_signatures": return try await ListDiagnosticSignaturesHandler(client: client).handle(params)
+        case "get_diagnostic_logs": return try await GetDiagnosticLogsHandler(client: client).handle(params)
+        case "get_perf_metrics": return try await GetPerfMetricsHandler(client: client).handle(params)
         default:
             logger.warning("Unknown tool: \(params.name)")
             return CallTool.Result(
