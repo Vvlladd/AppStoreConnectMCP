@@ -11,6 +11,33 @@ struct PerfPowerMetricsResponse: Decodable, Sendable {
     }
 }
 
+/// Goal can be a numeric threshold or a symbolic key like "fair".
+enum MetricGoal: Decodable, Sendable {
+    case numeric(Double)
+    case symbolic(String)
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        if let value = try? container.decode(Double.self) {
+            self = .numeric(value)
+        } else if let value = try? container.decode(String.self) {
+            self = .symbolic(value)
+        } else {
+            throw DecodingError.typeMismatch(
+                MetricGoal.self,
+                .init(codingPath: decoder.codingPath, debugDescription: "Expected Double or String for goal")
+            )
+        }
+    }
+
+    var displayString: String {
+        switch self {
+        case .numeric(let v): String(format: "%.2f", v)
+        case .symbolic(let s): s
+        }
+    }
+}
+
 struct MetricCategory: Decodable, Sendable {
     let identifier: String?
     let metrics: [PerfPowerMetric]?
@@ -39,8 +66,8 @@ struct PerfPowerMetric: Decodable, Sendable {
         struct DataPoint: Decodable, Sendable {
             let version: String?
             let value: Double?
-            let goal: Double?
-            let percentageBreakdown: PercentageBreakdown?
+            let goal: MetricGoal?
+            let percentageBreakdown: [PercentageBreakdown]?
 
             struct PercentageBreakdown: Decodable, Sendable {
                 let value: Double?

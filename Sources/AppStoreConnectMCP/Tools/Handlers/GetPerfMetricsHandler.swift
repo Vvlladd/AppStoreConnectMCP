@@ -26,7 +26,11 @@ struct GetPerfMetricsHandler {
             url = Endpoints.perfPowerMetricsForApp(appID: appID!, metricType: metricType, platform: platform)
         }
 
-        let response = try await client.get(url, as: PerfPowerMetricsResponse.self)
+        let response = try await client.get(
+            url,
+            accept: "application/vnd.apple.xcode-metrics+json",
+            as: PerfPowerMetricsResponse.self
+        )
 
         var output = ""
         guard let productData = response.productData, !productData.isEmpty else {
@@ -59,7 +63,7 @@ struct GetPerfMetricsHandler {
                         for point in points {
                             let version = point.version ?? "?"
                             let value = point.value.map { String(format: "%.2f", $0) } ?? "?"
-                            let goalInfo = point.goal.map { String(format: " (goal: %.2f)", $0) } ?? ""
+                            let goalInfo = point.goal.map { " (goal: \($0.displayString))" } ?? ""
                             output += "    \(device)\(percentileLabel): v\(version) = \(value) \(unit)\(goalInfo)\n"
                         }
                     }
