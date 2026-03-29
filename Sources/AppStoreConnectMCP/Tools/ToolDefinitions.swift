@@ -12,6 +12,9 @@ enum ToolDefinitions {
         attachBuild,
         prepareRelease,
         submitForReview,
+        releaseStatus,
+        cloneVersionMetadata,
+        validateForSubmission,
         listOrgs,
         setDefaultOrg,
         listDiagnosticSignatures,
@@ -167,6 +170,45 @@ enum ToolDefinitions {
                 "version_id": prop("string", "The version ID to submit"),
             ],
             required: ["version_id"]
+        )
+    )
+
+    static let releaseStatus = Tool(
+        name: "release_status",
+        description: "Get the complete status of an App Store version: state, build info, localization completeness, and release type",
+        inputSchema: schema(
+            properties: [
+                "app_id": prop("string", "The app ID"),
+                "version_id": prop("string", "The version ID (optional, uses latest if omitted)"),
+                "platform": prop("string", "Platform: IOS, MAC_OS, TV_OS, VISION_OS (default IOS)"),
+            ],
+            required: ["app_id"]
+        )
+    )
+
+    static let cloneVersionMetadata = Tool(
+        name: "clone_version_metadata",
+        description: "Copy all localizations from one App Store version to another",
+        inputSchema: schema(
+            properties: [
+                "source_version_id": prop("string", "The source version ID to copy from"),
+                "target_version_id": prop("string", "The target version ID to copy to"),
+                "locales": prop("string", "Comma-separated locale codes to clone (optional, clones all if omitted)"),
+            ],
+            required: ["source_version_id", "target_version_id"]
+        )
+    )
+
+    static let validateForSubmission = Tool(
+        name: "validate_for_submission",
+        description: "Pre-submission checklist: checks build, localizations, copyright, and version state before submitting for review",
+        inputSchema: schema(
+            properties: [
+                "app_id": prop("string", "The app ID"),
+                "version_id": prop("string", "The version ID (optional, uses latest if omitted)"),
+                "platform": prop("string", "Platform: IOS, MAC_OS, TV_OS, VISION_OS (default IOS)"),
+            ],
+            required: ["app_id"]
         )
     )
 

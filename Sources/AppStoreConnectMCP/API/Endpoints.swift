@@ -59,6 +59,10 @@ enum Endpoints {
         URL(string: "\(base)/buildUploadFiles/\(id)")!
     }
 
+    static func versionBuild(versionID: String) -> URL {
+        URL(string: "\(base)/appStoreVersions/\(versionID)/build")!
+    }
+
     static func versionBuildRelationship(versionID: String) -> URL {
         URL(string: "\(base)/appStoreVersions/\(versionID)/relationships/build")!
     }
