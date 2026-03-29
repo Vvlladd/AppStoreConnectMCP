@@ -10,9 +10,11 @@ Built in Swift with the [MCP Swift SDK](https://github.com/modelcontextprotocol/
 
 ## Key Features
 
+- **Release workflows** — Prepare releases, check status, validate before submission, and clone metadata between versions
 - **Version management** — Create, update, and list App Store versions
 - **Localized metadata** — Add descriptions, keywords, release notes, and URLs for any locale
 - **Build management** — List builds, upload IPAs, and attach builds to versions
+- **Diagnostics & performance** — View diagnostic signatures, logs, and performance metrics per build
 - **Review submission** — Submit versions to App Review in one step
 - **Multi-organization** — Manage multiple App Store Connect teams from a single server
 - **Secure auth** — ES256 JWT signing via Apple CryptoKit with automatic token refresh
@@ -90,21 +92,34 @@ Add to `~/.claude.json` (global) or `.claude/settings.json` (project) and use th
 
 Then ask your agent something like:
 
-> "Create version 2.1.0 for my app, add Italian localization with description and release notes, attach the latest build, and submit for review."
+> "Prepare version 2.1.0 for my app, validate it's ready for submission, and show me the full release status."
 
 ## Available Tools
 
 | Tool | Description | Key Parameters |
 |------|-------------|----------------|
+| **Release Workflows** | | |
+| `prepare_release` | Check readiness, create version, attach build, sync metadata | `app_id`, `version_string`, `platform` |
+| `release_status` | Full status overview: state, build, localizations, release type | `app_id`, `version_id?`, `platform?` |
+| `validate_for_submission` | Pre-submit checklist with pass/fail for each requirement | `app_id`, `version_id?`, `platform?` |
+| `clone_version_metadata` | Copy all localizations from one version to another | `source_version_id`, `target_version_id`, `locales?` |
+| **Version Management** | | |
 | `list_apps` | List all apps in your account | — |
 | `create_version` | Create a new App Store version | `app_id`, `version_string`, `platform` |
 | `list_versions` | List existing versions for an app | `app_id`, `platform?` |
 | `update_version` | Update version attributes | `version_id`, `copyright?`, `release_type?` |
 | `add_localization` | Add/update localized metadata | `version_id`, `locale`, `description?`, `keywords?`, `whats_new?`, `promotional_text?`, `marketing_url?`, `support_url?` |
+| **Build Management** | | |
 | `list_builds` | List available builds | `app_id`, `limit?` |
 | `upload_build` | Upload an IPA to App Store Connect | `app_id`, `ipa_path`, `version_string`, `build_number`, `platform?` |
 | `attach_build` | Attach a build to a version | `version_id`, `build_id` |
+| **Review** | | |
 | `submit_for_review` | Submit a version for App Review | `version_id` |
+| **Diagnostics & Performance** | | |
+| `list_diagnostic_signatures` | List diagnostic signatures (hangs, disk writes) for a build | `build_id`, `diagnostic_type?`, `limit?` |
+| `get_diagnostic_logs` | Get detailed logs with stack traces for a diagnostic signature | `signature_id` |
+| `get_perf_metrics` | Get performance and power metrics for an app or build | `app_id` or `build_id`, `metric_type?`, `platform?` |
+| **Organization** | | |
 | `list_orgs` | List configured organizations | — |
 | `set_default_org` | Change the default organization | `org` |
 
