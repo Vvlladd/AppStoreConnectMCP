@@ -43,11 +43,50 @@ Go beyond tools — use the full MCP spec:
 - **`release_all_approved`** — Release all versions in "Pending Developer Release" state
 - **`audit_all_apps`** — Check all apps for common issues (expired builds, stale versions, missing metadata)
 
+## 7. API Coverage Expansion
+
+### Tier A — Release Operations & App Info
+- **`get_app_info`** — Read app-level metadata (subtitle, categories, content rating)
+- **`update_app_info`** — Change categories, subtitle, privacy URL without Xcode
+- **`get_version_phased_release`** — Check phased release status (% rollout)
+- **`manage_phased_release`** — Pause/resume/complete phased rollouts
+- **`get_review_submission_status`** — Check if submission is waiting, in review, approved, rejected
+- **`list_in_app_purchases`** — See all IAPs and subscriptions for an app
+
+### Tier B — TestFlight
+- **`list_beta_groups`** — See TestFlight groups
+- **`add_beta_tester`** — Invite testers by email
+- **`list_beta_testers`** — List current testers
+- **`submit_for_beta_review`** — Submit build for TestFlight review
+- **`set_beta_build_details`** — Set "what to test" notes
+
+### Tier C — App Store Metadata Deep Dive
+- **`manage_screenshots`** — Upload/list/delete screenshots per locale
+- **`manage_preview_videos`** — Upload app previews
+- **`manage_app_pricing`** — Set pricing tier, schedule price changes
+- **`list_territories`** — See available territories/pricing
+
+### Tier D — Analytics, Sales & Reviews
+- **`get_sales_reports`** — Download financial/sales reports
+- **`get_app_analytics`** — Downloads, impressions, conversion rates
+- **`list_customer_reviews`** — Read App Store reviews
+- **`respond_to_review`** — Reply to customer reviews from Claude
+
+### Tier E — Provisioning & Signing
+- **`manage_certificates`** — List/create signing certificates
+- **`manage_profiles`** — Provisioning profiles
+- **`manage_devices`** — Register test devices
+- **`manage_bundle_ids`** — Register new bundle IDs
+- **`manage_capabilities`** — Enable push notifications, HealthKit, etc.
+
 ## Priority
 
 | Phase | Focus | Why |
 |-------|-------|-----|
 | **Phase 1** | Composite workflows (#1) + Validation (#2) | Biggest differentiation — turns an API wrapper into a release assistant |
-| **Phase 2** | Safety (#5) + Diff tools (#4) | Prevents mistakes, helps teams review changes |
-| **Phase 3** | MCP Resources & Prompts (#3) | Leverages the full MCP spec, unique in the ecosystem |
-| **Phase 4** | Batch operations (#6) | Power-user features for multi-app accounts |
+| **Phase 2** | Release ops & TestFlight (#7 Tier A+B) | Most-used daily workflows after what's already built |
+| **Phase 3** | Safety (#5) + Diff tools (#4) | Prevents mistakes, helps teams review changes |
+| **Phase 4** | MCP Resources & Prompts (#3) | Leverages the full MCP spec, unique in the ecosystem |
+| **Phase 5** | Reviews & Analytics (#7 Tier D) | Close the feedback loop — read reviews, track metrics from Claude |
+| **Phase 6** | Metadata deep dive (#7 Tier C) + Batch ops (#6) | Screenshots, pricing, multi-app power features |
+| **Phase 7** | Provisioning & Signing (#7 Tier E) | Advanced ops for teams managing certs/profiles |

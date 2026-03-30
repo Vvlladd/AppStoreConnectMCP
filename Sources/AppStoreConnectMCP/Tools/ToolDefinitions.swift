@@ -12,8 +12,14 @@ enum ToolDefinitions {
         attachBuild,
         prepareRelease,
         submitForReview,
+        releaseStatus,
+        cloneVersionMetadata,
+        validateForSubmission,
         listOrgs,
         setDefaultOrg,
+        listDiagnosticSignatures,
+        getDiagnosticLogs,
+        getPerfMetrics,
     ]
 
     private static let orgProp = prop("string", "Organization name (optional, uses default if omitted)")
@@ -167,6 +173,45 @@ enum ToolDefinitions {
         )
     )
 
+    static let releaseStatus = Tool(
+        name: "release_status",
+        description: "Get the complete status of an App Store version: state, build info, localization completeness, and release type",
+        inputSchema: schema(
+            properties: [
+                "app_id": prop("string", "The app ID"),
+                "version_id": prop("string", "The version ID (optional, uses latest if omitted)"),
+                "platform": prop("string", "Platform: IOS, MAC_OS, TV_OS, VISION_OS (default IOS)"),
+            ],
+            required: ["app_id"]
+        )
+    )
+
+    static let cloneVersionMetadata = Tool(
+        name: "clone_version_metadata",
+        description: "Copy all localizations from one App Store version to another",
+        inputSchema: schema(
+            properties: [
+                "source_version_id": prop("string", "The source version ID to copy from"),
+                "target_version_id": prop("string", "The target version ID to copy to"),
+                "locales": prop("string", "Comma-separated locale codes to clone (optional, clones all if omitted)"),
+            ],
+            required: ["source_version_id", "target_version_id"]
+        )
+    )
+
+    static let validateForSubmission = Tool(
+        name: "validate_for_submission",
+        description: "Pre-submission checklist: checks build, localizations, copyright, and version state before submitting for review",
+        inputSchema: schema(
+            properties: [
+                "app_id": prop("string", "The app ID"),
+                "version_id": prop("string", "The version ID (optional, uses latest if omitted)"),
+                "platform": prop("string", "Platform: IOS, MAC_OS, TV_OS, VISION_OS (default IOS)"),
+            ],
+            required: ["app_id"]
+        )
+    )
+
     static let listOrgs = Tool(
         name: "list_orgs",
         description: "List all configured App Store Connect organizations",
@@ -174,6 +219,43 @@ enum ToolDefinitions {
             "type": .string("object"),
             "properties": .object([:]),
         ])
+    )
+
+    static let listDiagnosticSignatures = Tool(
+        name: "list_diagnostic_signatures",
+        description: "List diagnostic signatures (hangs, disk writes) for a build, with severity weights",
+        inputSchema: schema(
+            properties: [
+                "build_id": prop("string", "The build ID"),
+                "diagnostic_type": prop("string", "Filter by type: DISK_WRITES or HANGS (optional)"),
+                "limit": prop("integer", "Max results to return (default 10)"),
+            ],
+            required: ["build_id"]
+        )
+    )
+
+    static let getDiagnosticLogs = Tool(
+        name: "get_diagnostic_logs",
+        description: "Get detailed diagnostic logs with stack traces, device info, and metadata for a diagnostic signature",
+        inputSchema: schema(
+            properties: [
+                "signature_id": prop("string", "The diagnostic signature ID"),
+            ],
+            required: ["signature_id"]
+        )
+    )
+
+    static let getPerfMetrics = Tool(
+        name: "get_perf_metrics",
+        description: "Get performance and power metrics (launch times, hang rates, memory, battery, disk writes) for an app or build",
+        inputSchema: schema(
+            properties: [
+                "app_id": prop("string", "The app ID (provide app_id or build_id)"),
+                "build_id": prop("string", "The build ID (provide app_id or build_id)"),
+                "metric_type": prop("string", "Filter by metric type (optional)"),
+                "platform": prop("string", "Filter by platform: IOS, MAC_OS, TV_OS, VISION_OS (optional)"),
+            ]
+        )
     )
 
     static let setDefaultOrg = Tool(

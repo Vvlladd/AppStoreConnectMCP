@@ -23,6 +23,11 @@ actor AppStoreConnectClient {
         return try decode(data, as: type)
     }
 
+    func get<T: Decodable & Sendable>(_ url: URL, accept: String, as type: T.Type) async throws -> T {
+        let data = try await performRequest(url: url, method: "GET", accept: accept)
+        return try decode(data, as: type)
+    }
+
     func post<Body: Encodable & Sendable, T: Decodable & Sendable>(
         _ url: URL, body: Body, as type: T.Type
     ) async throws -> T {
@@ -64,12 +69,12 @@ actor AppStoreConnectClient {
     // MARK: - Private
 
     private func performRequest(
-        url: URL, method: String, body: Data? = nil,
+        url: URL, method: String, body: Data? = nil, accept: String = "application/json",
         authRetried: Bool = false, rateLimitRetried: Bool = false
     ) async throws -> Data {
         var request = URLRequest(url: url)
         request.httpMethod = method
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
+        request.setValue(accept, forHTTPHeaderField: "Accept")
 
         if body != nil {
             request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -96,7 +101,7 @@ actor AppStoreConnectClient {
             logger.warning("401 Unauthorized, refreshing JWT and retrying")
             _ = try await jwtGenerator.forceRefresh()
             return try await performRequest(
-                url: url, method: method, body: body,
+                url: url, method: method, body: body, accept: accept,
                 authRetried: true, rateLimitRetried: rateLimitRetried
             )
         }
@@ -108,7 +113,7 @@ actor AppStoreConnectClient {
             logger.warning("429 Rate limited, retrying after \(retryAfter)s")
             try await Task.sleep(nanoseconds: UInt64(retryAfter * 1_000_000_000))
             return try await performRequest(
-                url: url, method: method, body: body,
+                url: url, method: method, body: body, accept: accept,
                 authRetried: authRetried, rateLimitRetried: true
             )
         }
