@@ -15,8 +15,12 @@ enum Endpoints {
         return components.url!
     }
 
-    static func appStoreVersion(id: String) -> URL {
-        URL(string: "\(base)/appStoreVersions/\(id)")!
+    static func appStoreVersion(id: String, includeApp: Bool = false) -> URL {
+        var components = URLComponents(string: "\(base)/appStoreVersions/\(id)")!
+        if includeApp {
+            components.queryItems = [URLQueryItem(name: "include", value: "app")]
+        }
+        return components.url!
     }
 
     static func appStoreVersionsCreate() -> URL {
@@ -67,8 +71,12 @@ enum Endpoints {
         URL(string: "\(base)/appStoreVersions/\(versionID)/relationships/build")!
     }
 
-    static func appStoreReviewSubmissions() -> URL {
-        URL(string: "\(base)/appStoreReviewSubmissions")!
+    static func reviewSubmissions() -> URL {
+        URL(string: "\(base)/reviewSubmissions")!
+    }
+
+    static func reviewSubmissionItems() -> URL {
+        URL(string: "\(base)/reviewSubmissionItems")!
     }
 
     // MARK: - Diagnostics

@@ -12,22 +12,31 @@ struct SubmitForReviewHandler {
             throw AppStoreConnectError.invalidArgument("version_id is required")
         }
 
-        let body = CreateSubmissionRequest(
-            data: .init(
-                relationships: .init(
-                    appStoreVersion: .init(data: .init(type: "appStoreVersions", id: versionID))
-                )
-            )
+        let versionLookup = try await client.get(
+            Endpoints.appStoreVersion(id: versionID, includeApp: true),
+            as: APIResponse<AppStoreVersionSubmissionLookup>.self
+        )
+        guard let appID = versionLookup.data.relationships?.app?.data?.id else {
+            throw AppStoreConnectError.apiError("Could not resolve app ID from version \(versionID)")
+        }
+
+        let reviewSubmission = try await client.post(
+            Endpoints.reviewSubmissions(),
+            body: CreateReviewSubmissionRequest(appID: appID),
+            as: APIResponse<ReviewSubmission>.self
         )
 
-        let response = try await client.post(
-            Endpoints.appStoreReviewSubmissions(),
-            body: body,
-            as: APIResponse<AppStoreReviewSubmission>.self
+        let _ = try await client.post(
+            Endpoints.reviewSubmissionItems(),
+            body: CreateReviewSubmissionItemRequest(
+                versionID: versionID,
+                reviewSubmissionID: reviewSubmission.data.id
+            ),
+            as: APIResponse<ReviewSubmissionItem>.self
         )
 
         return CallTool.Result(content: [.text(
-            "Submitted version [\(versionID)] for review — submission ID: \(response.data.id)"
+            "Submitted version [\(versionID)] for review — review submission ID: \(reviewSubmission.data.id)"
         )])
     }
 }
