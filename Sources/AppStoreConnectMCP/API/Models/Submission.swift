@@ -21,6 +21,25 @@ struct AppStoreVersionSubmissionLookup: Decodable, Sendable {
 struct ReviewSubmission: Decodable, Sendable {
     let type: String
     let id: String
+    let attributes: Attributes?
+    let relationships: Relationships?
+
+    struct Attributes: Decodable, Sendable {
+        let state: String?
+    }
+
+    struct Relationships: Decodable, Sendable {
+        let appStoreVersionForReview: AppStoreVersionForReview?
+
+        struct AppStoreVersionForReview: Decodable, Sendable {
+            let data: ResourceIdentifier?
+
+            struct ResourceIdentifier: Decodable, Sendable {
+                let type: String
+                let id: String
+            }
+        }
+    }
 }
 
 struct ReviewSubmissionItem: Decodable, Sendable {
@@ -64,6 +83,24 @@ struct CreateReviewSubmissionItemRequest: Encodable, Sendable {
         struct Relationships: Encodable, Sendable {
             let appStoreVersion: RelationshipData
             let reviewSubmission: RelationshipData
+        }
+    }
+}
+
+struct UpdateReviewSubmissionRequest: Encodable, Sendable {
+    let data: RequestData
+
+    init(reviewSubmissionID: String, submitted: Bool) {
+        data = RequestData(id: reviewSubmissionID, attributes: .init(submitted: submitted))
+    }
+
+    struct RequestData: Encodable, Sendable {
+        let type = "reviewSubmissions"
+        let id: String
+        let attributes: Attributes
+
+        struct Attributes: Encodable, Sendable {
+            let submitted: Bool?
         }
     }
 }
