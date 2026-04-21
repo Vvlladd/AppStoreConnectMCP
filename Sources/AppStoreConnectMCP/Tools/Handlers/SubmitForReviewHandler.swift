@@ -69,11 +69,10 @@ struct SubmitForReviewHandler {
     }
 
     private func listReviewSubmissions(appID: String) async throws -> [ReviewSubmission] {
-        let response = try await client.get(
+        try await client.getAll(
             Endpoints.reviewSubmissions(appID: appID, states: Self.knownReviewSubmissionStates),
             as: APIListResponse<ReviewSubmission>.self
         )
-        return response.data
     }
 
     private func resolveOrCreateReadySubmission(
@@ -165,7 +164,15 @@ struct SubmitForReviewHandler {
         }
 
         let normalized = message.lowercased()
-        return (normalized.contains("reviewsubmission") || normalized.contains("review submission"))
-            && (normalized.contains("already") || normalized.contains("exists"))
+        let referencesSubmission = normalized.contains("reviewsubmission")
+            || normalized.contains("review submission")
+            || normalized.contains("submission")
+        let hasSubmissionConflictSignal = normalized.contains("already")
+            || normalized.contains("exists")
+            || normalized.contains("in progress")
+            || normalized.contains("still in progress")
+            || normalized.contains("currently in progress")
+
+        return referencesSubmission && hasSubmissionConflictSignal
     }
 }
