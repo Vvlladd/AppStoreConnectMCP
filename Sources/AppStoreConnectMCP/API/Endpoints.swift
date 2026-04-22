@@ -15,8 +15,12 @@ enum Endpoints {
         return components.url!
     }
 
-    static func appStoreVersion(id: String) -> URL {
-        URL(string: "\(base)/appStoreVersions/\(id)")!
+    static func appStoreVersion(id: String, includeApp: Bool = false) -> URL {
+        var components = URLComponents(string: "\(base)/appStoreVersions/\(id)")!
+        if includeApp {
+            components.queryItems = [URLQueryItem(name: "include", value: "app")]
+        }
+        return components.url!
     }
 
     static func appStoreVersionsCreate() -> URL {
@@ -67,8 +71,35 @@ enum Endpoints {
         URL(string: "\(base)/appStoreVersions/\(versionID)/relationships/build")!
     }
 
-    static func appStoreReviewSubmissions() -> URL {
-        URL(string: "\(base)/appStoreReviewSubmissions")!
+    static func reviewSubmissions() -> URL {
+        URL(string: "\(base)/reviewSubmissions")!
+    }
+
+    static func reviewSubmissions(
+        appID: String,
+        states: [String]? = nil,
+        limit: Int = 200
+    ) -> URL {
+        var components = URLComponents(string: "\(base)/reviewSubmissions")!
+        var queryItems: [URLQueryItem] = [
+            URLQueryItem(name: "filter[app]", value: appID),
+            URLQueryItem(name: "fields[reviewSubmissions]", value: "state,appStoreVersionForReview"),
+            URLQueryItem(name: "include", value: "appStoreVersionForReview"),
+            URLQueryItem(name: "limit", value: String(limit)),
+        ]
+        if let states, !states.isEmpty {
+            queryItems.append(URLQueryItem(name: "filter[state]", value: states.joined(separator: ",")))
+        }
+        components.queryItems = queryItems
+        return components.url!
+    }
+
+    static func reviewSubmission(id: String) -> URL {
+        URL(string: "\(base)/reviewSubmissions/\(id)")!
+    }
+
+    static func reviewSubmissionItems() -> URL {
+        URL(string: "\(base)/reviewSubmissionItems")!
     }
 
     // MARK: - Diagnostics
