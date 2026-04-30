@@ -19,7 +19,7 @@ let package = Package(
     dependencies: [
         .package(
             url: "https://github.com/modelcontextprotocol/swift-sdk.git",
-            from: "0.7.1"
+            from: "0.12.0"
         ),
     ]
 )
