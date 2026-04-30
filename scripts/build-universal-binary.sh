@@ -50,8 +50,10 @@ fi
 
 ARM64_ARCHS="$(lipo -archs "$ARM64_BINARY" 2>/dev/null || true)"
 if [[ "$ARM64_ARCHS" == *"arm64"* && "$ARM64_ARCHS" == *"x86_64"* ]]; then
+  rm -f "$OUTPUT_BINARY"
   cp "$ARM64_BINARY" "$OUTPUT_BINARY"
   chmod 755 "$OUTPUT_BINARY"
+  codesign --force --sign - "$OUTPUT_BINARY"
   echo "Build product already universal: $ARM64_ARCHS"
   echo "Universal binary written to $OUTPUT_BINARY"
   exit 0
@@ -65,8 +67,10 @@ if [[ ! -f "$X64_BINARY" ]]; then
 fi
 
 echo "Creating universal binary from arm64 + x86_64 artifacts..."
+rm -f "$OUTPUT_BINARY"
 lipo -create "$ARM64_BINARY" "$X64_BINARY" -output "$OUTPUT_BINARY"
 chmod 755 "$OUTPUT_BINARY"
+codesign --force --sign - "$OUTPUT_BINARY"
 
 echo "Universal binary written to $OUTPUT_BINARY"
 echo "Architectures: $(lipo -archs "$OUTPUT_BINARY")"
