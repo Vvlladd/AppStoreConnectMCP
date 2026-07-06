@@ -43,16 +43,32 @@ tuist install && tuist generate && tuist build
 
 ### Configure
 
-Set your API credentials:
+Choose the configuration that matches your App Store Connect API key.
+
+#### Team API Key
+
+Team keys require the issuer ID. `ASC_AUTH_MODE` defaults to `team`, but setting it
+explicitly makes the configuration clear:
 
 ```bash
 export ASC_KEY_ID="your-key-id"
 export ASC_PRIVATE_KEY_PATH="/path/to/AuthKey_XXXXXX.p8"
-export ASC_ISSUER_ID="your-issuer-id"       # required for team keys
-export ASC_AUTH_MODE="team"                  # "team" (default) or "individual"
+export ASC_ISSUER_ID="your-issuer-id"
+export ASC_AUTH_MODE="team"
 ```
 
-Get these values from [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api). For individual keys, set `ASC_AUTH_MODE="individual"` and omit `ASC_ISSUER_ID`.
+#### Individual API Key
+
+Individual keys do not use an issuer ID. Set `ASC_AUTH_MODE` to `individual` and
+omit `ASC_ISSUER_ID`:
+
+```bash
+export ASC_KEY_ID="your-key-id"
+export ASC_PRIVATE_KEY_PATH="/path/to/AuthKey_XXXXXX.p8"
+export ASC_AUTH_MODE="individual"
+```
+
+Get these values from [App Store Connect > Users and Access > Integrations > App Store Connect API](https://appstoreconnect.apple.com/access/integrations/api).
 
 ## Install via npm
 
@@ -71,7 +87,10 @@ npx -y @vvlladd/appstoreconnect-mcp
 
 ### Connect to Claude Code
 
-Add to `~/.claude.json` (global) or `.claude/settings.json` (project) and use the npm package:
+Add one of the following configurations to `~/.claude.json` (global) or
+`.claude/settings.json` (project) and use the npm package.
+
+For a team API key:
 
 ```json
 {
@@ -84,6 +103,24 @@ Add to `~/.claude.json` (global) or `.claude/settings.json` (project) and use th
         "ASC_PRIVATE_KEY_PATH": "/path/to/AuthKey.p8",
         "ASC_ISSUER_ID": "your-issuer-id",
         "ASC_AUTH_MODE": "team"
+      }
+    }
+  }
+}
+```
+
+For an individual API key:
+
+```json
+{
+  "mcpServers": {
+    "appstoreconnect": {
+      "command": "npx",
+      "args": ["-y", "@vvlladd/appstoreconnect-mcp"],
+      "env": {
+        "ASC_KEY_ID": "your-key-id",
+        "ASC_PRIVATE_KEY_PATH": "/path/to/AuthKey.p8",
+        "ASC_AUTH_MODE": "individual"
       }
     }
   }
@@ -133,8 +170,8 @@ All tools (except `list_orgs` and `set_default_org`) accept an optional `org` pa
 |----------|-------------|----------|
 | `ASC_KEY_ID` | API key ID | Yes |
 | `ASC_PRIVATE_KEY_PATH` | Path to `.p8` private key file | Yes |
-| `ASC_ISSUER_ID` | API issuer ID | Team keys only |
-| `ASC_AUTH_MODE` | `team` (default) or `individual` | No |
+| `ASC_ISSUER_ID` | API issuer ID; omit for individual keys | Team keys only |
+| `ASC_AUTH_MODE` | Authentication mode: `team` (default) or `individual` | Required for individual keys |
 
 ## Multi-Organization Support
 
