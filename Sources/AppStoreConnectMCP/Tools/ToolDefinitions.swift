@@ -6,6 +6,7 @@ enum ToolDefinitions {
         createVersion,
         listVersions,
         updateVersion,
+        setPhasedRelease,
         addLocalization,
         listBuilds,
         uploadBuild,
@@ -87,6 +88,18 @@ enum ToolDefinitions {
         )
     )
 
+    static let setPhasedRelease = Tool(
+        name: "set_phased_release",
+        description: "Choose whether an App Store version rolls out over 7 days or instantly to all users",
+        inputSchema: schema(
+            properties: [
+                "version_id": prop("string", "The version ID"),
+                "enabled": prop("boolean", "true for a 7-day phased rollout; false for instant rollout to all users"),
+            ],
+            required: ["version_id", "enabled"]
+        )
+    )
+
     static let addLocalization = Tool(
         name: "add_localization",
         description: "Add or update localized metadata for a version",
@@ -148,7 +161,7 @@ enum ToolDefinitions {
 
     static let prepareRelease = Tool(
         name: "prepare_release",
-        description: "Check release readiness, create or reuse a version, attach the latest valid build, and ensure metadata is present",
+        description: "Check release readiness, create or reuse a version, attach the latest valid build, ensure metadata is present, and optionally configure rollout",
         inputSchema: schema(
             properties: [
                 "app_id": prop("string", "The app ID"),
@@ -156,6 +169,7 @@ enum ToolDefinitions {
                 "platform": prop("string", "Platform: IOS, MAC_OS, TV_OS, VISION_OS"),
                 "copyright": prop("string", "Copyright text to apply if needed"),
                 "release_type": prop("string", "MANUAL, AFTER_APPROVAL, or SCHEDULED"),
+                "phased_release": prop("boolean", "true for a 7-day phased rollout; false for instant rollout to all users"),
                 "build_limit": prop("integer", "How many recent builds to inspect when selecting the latest valid build (default 100)"),
             ],
             required: ["app_id", "version_string", "platform"]
@@ -175,7 +189,7 @@ enum ToolDefinitions {
 
     static let releaseStatus = Tool(
         name: "release_status",
-        description: "Get the complete status of an App Store version: state, build info, localization completeness, and release type",
+        description: "Get the complete status of an App Store version: state, build info, localization completeness, release type, and rollout",
         inputSchema: schema(
             properties: [
                 "app_id": prop("string", "The app ID"),

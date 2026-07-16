@@ -49,6 +49,10 @@ actor AppStoreConnectClient {
         _ = try await performRequest(url: url, method: "PATCH", body: bodyData)
     }
 
+    func delete(_ url: URL) async throws {
+        _ = try await performRequest(url: url, method: "DELETE")
+    }
+
     func upload(_ url: URL, method: String, headers: [String: String], body: Data) async throws {
         _ = try await performExternalRequest(url: url, method: method, headers: headers, body: body)
     }

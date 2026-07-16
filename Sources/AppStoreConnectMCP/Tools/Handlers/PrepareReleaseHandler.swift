@@ -20,6 +20,7 @@ struct PrepareReleaseHandler {
 
         let copyright: String? = if case .string(let value) = args["copyright"] { value } else { nil }
         let releaseType: String? = if case .string(let value) = args["release_type"] { value } else { nil }
+        let phasedRelease: Bool? = if case .bool(let value) = args["phased_release"] { value } else { nil }
         let buildLimit = args["build_limit"]?.intValue ?? 100
 
         let versionsResponse = try await client.get(
@@ -78,6 +79,18 @@ struct PrepareReleaseHandler {
             missing.append(contentsOf: buildOutcome.missing)
         } catch {
             missing.append("Build attachment failed: \(error.localizedDescription)")
+        }
+
+        if let phasedRelease {
+            do {
+                let result = try await PhasedReleaseManager(client: client).setEnabled(
+                    phasedRelease,
+                    forVersionID: targetVersion.id
+                )
+                ready.append("Release rollout: \(result.description)")
+            } catch {
+                missing.append("Release rollout configuration failed: \(error.localizedDescription)")
+            }
         }
 
         let status = missing.isEmpty ? "ready" : "needs_attention"

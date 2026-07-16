@@ -17,12 +17,16 @@ struct ReleaseStatusHandler {
         let version = try await resolveVersion(appID: appID, versionID: versionID, platform: platform)
         let build = try await fetchAttachedBuild(versionID: version.id)
         let localizations = try await listLocalizations(versionID: version.id)
+        let phasedRelease = try await PhasedReleaseManager(client: client).currentPhasedRelease(
+            forVersionID: version.id
+        )
 
         var output = """
         Release Status for v\(version.attributes.versionString ?? "?") [\(version.id)]
         Platform: \(version.attributes.platform ?? platform)
         State: \(version.attributes.appStoreState ?? "unknown")
         Release Type: \(version.attributes.releaseType ?? "not set")
+        Rollout: \(rolloutDescription(phasedRelease))
         Copyright: \(version.attributes.copyright ?? "not set")
 
         Build:
@@ -97,5 +101,18 @@ struct ReleaseStatusHandler {
             return "MISSING"
         }
         return "OK"
+    }
+
+    private func rolloutDescription(_ phasedRelease: AppStoreVersionPhasedRelease?) -> String {
+        guard let phasedRelease else { return "instant to all users" }
+        if phasedRelease.attributes.phasedReleaseState == .complete {
+            return "instant to all users (phased rollout complete)"
+        }
+
+        let state = phasedRelease.attributes.phasedReleaseState?.rawValue ?? "unknown"
+        guard let day = phasedRelease.attributes.currentDayNumber else {
+            return "phased (state: \(state))"
+        }
+        return "phased (state: \(state), day: \(day)/7)"
     }
 }
