@@ -52,8 +52,8 @@ struct UpdatePhasedReleaseRequest: Encodable, Sendable {
     }
 }
 
-struct OptionalResourceIdentifierResponse: Decodable, Sendable {
-    let data: ResourceIdentifier?
+struct ResourceIdentifierResponse: Decodable, Sendable {
+    let data: ResourceIdentifier
 
     struct ResourceIdentifier: Decodable, Sendable {
         let type: String

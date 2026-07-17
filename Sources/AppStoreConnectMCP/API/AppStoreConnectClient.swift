@@ -124,6 +124,12 @@ actor AppStoreConnectClient {
 
         guard (200...299).contains(statusCode) else {
             if let errorResponse = try? decoder.decode(APIErrorResponse.self, from: data) {
+                if statusCode == 404 {
+                    throw AppStoreConnectError.httpError(
+                        statusCode: statusCode,
+                        body: errorResponse.message
+                    )
+                }
                 throw AppStoreConnectError.apiError(errorResponse.message)
             }
             let bodyString = String(data: data, encoding: .utf8) ?? "No body"

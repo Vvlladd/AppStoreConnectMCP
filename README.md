@@ -99,7 +99,7 @@ Then ask your agent something like:
 | Tool | Description | Key Parameters |
 |------|-------------|----------------|
 | **Release Workflows** | | |
-| `prepare_release` | Check readiness, create version, attach build, sync metadata, configure rollout | `app_id`, `version_string`, `platform`, `phased_release?` |
+| `prepare_release` | Check readiness, create version, attach build, sync metadata, configure rollout | `app_id`, `version_string`, `platform`, `phased_release?`, `confirm_immediate_release?` |
 | `release_status` | Full status overview: state, build, localizations, release type, rollout | `app_id`, `version_id?`, `platform?` |
 | `validate_for_submission` | Pre-submit checklist with pass/fail for each requirement | `app_id`, `version_id?`, `platform?` |
 | `clone_version_metadata` | Copy all localizations from one version to another | `source_version_id`, `target_version_id`, `locales?` |
@@ -108,7 +108,7 @@ Then ask your agent something like:
 | `create_version` | Create a new App Store version | `app_id`, `version_string`, `platform` |
 | `list_versions` | List existing versions for an app | `app_id`, `platform?` |
 | `update_version` | Update version attributes | `version_id`, `copyright?`, `release_type?` |
-| `set_phased_release` | Choose a 7-day phased rollout or instant rollout to all users | `version_id`, `enabled` |
+| `set_phased_release` | Choose a 7-day phased rollout or instant rollout to all users | `version_id`, `enabled`, `confirm_immediate_release?` |
 | `add_localization` | Add/update localized metadata | `version_id`, `locale`, `description?`, `keywords?`, `whats_new?`, `promotional_text?`, `marketing_url?`, `support_url?` |
 | **Build Management** | | |
 | `list_builds` | List available builds | `app_id`, `limit?` |

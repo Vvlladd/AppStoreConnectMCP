@@ -95,6 +95,7 @@ enum ToolDefinitions {
             properties: [
                 "version_id": prop("string", "The version ID"),
                 "enabled": prop("boolean", "true for a 7-day phased rollout; false for instant rollout to all users"),
+                "confirm_immediate_release": prop("boolean", "Must be true when disabling an active or paused phased release, because that immediately releases the version to all users"),
             ],
             required: ["version_id", "enabled"]
         )
@@ -170,6 +171,7 @@ enum ToolDefinitions {
                 "copyright": prop("string", "Copyright text to apply if needed"),
                 "release_type": prop("string", "MANUAL, AFTER_APPROVAL, or SCHEDULED"),
                 "phased_release": prop("boolean", "true for a 7-day phased rollout; false for instant rollout to all users"),
+                "confirm_immediate_release": prop("boolean", "Must be true when disabling an active or paused phased release, because that immediately releases the version to all users"),
                 "build_limit": prop("integer", "How many recent builds to inspect when selecting the latest valid build (default 100)"),
             ],
             required: ["app_id", "version_string", "platform"]

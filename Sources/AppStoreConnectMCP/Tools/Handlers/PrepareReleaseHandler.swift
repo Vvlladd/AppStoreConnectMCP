@@ -20,7 +20,26 @@ struct PrepareReleaseHandler {
 
         let copyright: String? = if case .string(let value) = args["copyright"] { value } else { nil }
         let releaseType: String? = if case .string(let value) = args["release_type"] { value } else { nil }
-        let phasedRelease: Bool? = if case .bool(let value) = args["phased_release"] { value } else { nil }
+        let phasedRelease: Bool?
+        if let value = args["phased_release"] {
+            guard case .bool(let enabled) = value else {
+                throw AppStoreConnectError.invalidArgument("phased_release must be a boolean")
+            }
+            phasedRelease = enabled
+        } else {
+            phasedRelease = nil
+        }
+        let confirmImmediateRelease: Bool
+        if let value = args["confirm_immediate_release"] {
+            guard case .bool(let confirmed) = value else {
+                throw AppStoreConnectError.invalidArgument(
+                    "confirm_immediate_release must be a boolean"
+                )
+            }
+            confirmImmediateRelease = confirmed
+        } else {
+            confirmImmediateRelease = false
+        }
         let buildLimit = args["build_limit"]?.intValue ?? 100
 
         let versionsResponse = try await client.get(
@@ -85,7 +104,8 @@ struct PrepareReleaseHandler {
             do {
                 let result = try await PhasedReleaseManager(client: client).setEnabled(
                     phasedRelease,
-                    forVersionID: targetVersion.id
+                    forVersionID: targetVersion.id,
+                    confirmImmediateRelease: confirmImmediateRelease
                 )
                 ready.append("Release rollout: \(result.description)")
             } catch {
