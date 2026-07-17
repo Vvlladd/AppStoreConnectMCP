@@ -27,6 +27,10 @@ enum Endpoints {
         URL(string: "\(base)/appStoreVersions")!
     }
 
+    static func appStoreVersionReleaseRequests() -> URL {
+        URL(string: "\(base)/appStoreVersionReleaseRequests")!
+    }
+
     static func appStoreVersionLocalizations(versionID: String) -> URL {
         URL(string: "\(base)/appStoreVersions/\(versionID)/appStoreVersionLocalizations")!
     }
