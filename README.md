@@ -115,7 +115,7 @@ Then ask your agent something like:
 | `attach_build` | Attach a build to a version | `version_id`, `build_id` |
 | **Review** | | |
 | `submit_for_review` | Submit a version for App Review | `version_id` |
-| `release_version` | Release a version in `PENDING_DEVELOPER_RELEASE` (cannot be canceled) | `version_id` |
+| `release_version` | Release a version in `PENDING_DEVELOPER_RELEASE` (cannot be canceled) | `version_id`, `confirm` |
 | **Diagnostics & Performance** | | |
 | `list_diagnostic_signatures` | List diagnostic signatures (hangs, disk writes) for a build | `build_id`, `diagnostic_type?`, `limit?` |
 | `get_diagnostic_logs` | Get detailed logs with stack traces for a diagnostic signature | `signature_id` |

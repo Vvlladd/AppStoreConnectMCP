@@ -180,8 +180,16 @@ enum ToolDefinitions {
         inputSchema: schema(
             properties: [
                 "version_id": prop("string", "The version ID to release"),
+                "confirm": prop("boolean", "Must be true to confirm this irreversible action"),
             ],
-            required: ["version_id"]
+            required: ["version_id", "confirm"]
+        ),
+        annotations: .init(
+            title: "Release App Store Version",
+            readOnlyHint: false,
+            destructiveHint: true,
+            idempotentHint: false,
+            openWorldHint: true
         )
     )
 

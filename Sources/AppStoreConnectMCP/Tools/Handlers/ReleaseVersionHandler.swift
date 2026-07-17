@@ -13,6 +13,14 @@ struct ReleaseVersionHandler {
         guard case .string(let versionID) = args["version_id"] else {
             throw AppStoreConnectError.invalidArgument("version_id is required")
         }
+        guard !versionID.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            throw AppStoreConnectError.invalidArgument("version_id must not be empty")
+        }
+        guard case .bool(true) = args["confirm"] else {
+            throw AppStoreConnectError.invalidArgument(
+                "confirm must be true because releasing a version cannot be canceled"
+            )
+        }
 
         let versionResponse = try await client.get(
             Endpoints.appStoreVersion(id: versionID),
@@ -22,7 +30,7 @@ struct ReleaseVersionHandler {
         let state = version.attributes.appStoreState ?? "UNKNOWN"
 
         guard state == Self.releasableState else {
-            throw AppStoreConnectError.invalidArgument(
+            throw AppStoreConnectError.invalidState(
                 "Version [\(versionID)] cannot be released from state \(state); expected \(Self.releasableState)"
             )
         }
@@ -36,7 +44,9 @@ struct ReleaseVersionHandler {
 
         let versionLabel = version.attributes.versionString.map { " v\($0)" } ?? ""
         return CallTool.Result(content: [.text(
-            "Release requested for version\(versionLabel) [\(versionID)] — request ID: \(response.data.id)"
+            text: "Release requested for version\(versionLabel) [\(versionID)] — request ID: \(response.data.id)",
+            annotations: nil,
+            _meta: nil
         )])
     }
 }
