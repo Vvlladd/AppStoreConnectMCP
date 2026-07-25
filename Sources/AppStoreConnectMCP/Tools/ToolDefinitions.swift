@@ -13,6 +13,7 @@ enum ToolDefinitions {
         attachBuild,
         prepareRelease,
         submitForReview,
+        releaseVersion,
         releaseStatus,
         cloneVersionMetadata,
         validateForSubmission,
@@ -186,6 +187,25 @@ enum ToolDefinitions {
                 "version_id": prop("string", "The version ID to submit"),
             ],
             required: ["version_id"]
+        )
+    )
+
+    static let releaseVersion = Tool(
+        name: "release_version",
+        description: "Release an approved App Store version that is in PENDING_DEVELOPER_RELEASE; this action cannot be canceled",
+        inputSchema: schema(
+            properties: [
+                "version_id": prop("string", "The version ID to release"),
+                "confirm": prop("boolean", "Must be true to confirm this irreversible action"),
+            ],
+            required: ["version_id", "confirm"]
+        ),
+        annotations: .init(
+            title: "Release App Store Version",
+            readOnlyHint: false,
+            destructiveHint: true,
+            idempotentHint: false,
+            openWorldHint: true
         )
     )
 

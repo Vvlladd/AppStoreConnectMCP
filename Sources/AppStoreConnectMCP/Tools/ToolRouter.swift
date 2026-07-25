@@ -46,6 +46,7 @@ struct ToolRouter: Sendable {
         case "attach_build": return try await AttachBuildHandler(client: client).handle(params)
         case "prepare_release": return try await PrepareReleaseHandler(client: client).handle(params)
         case "submit_for_review": return try await SubmitForReviewHandler(client: client).handle(params)
+        case "release_version": return try await ReleaseVersionHandler(client: client).handle(params)
         case "release_status": return try await ReleaseStatusHandler(client: client).handle(params)
         case "clone_version_metadata": return try await CloneVersionMetadataHandler(client: client).handle(params)
         case "validate_for_submission": return try await ValidateForSubmissionHandler(client: client).handle(params)
