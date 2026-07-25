@@ -39,6 +39,7 @@ struct ToolRouter: Sendable {
         case "create_version": return try await CreateVersionHandler(client: client).handle(params)
         case "list_versions": return try await ListVersionsHandler(client: client).handle(params)
         case "update_version": return try await UpdateVersionHandler(client: client).handle(params)
+        case "set_phased_release": return try await SetPhasedReleaseHandler(client: client).handle(params)
         case "add_localization": return try await AddLocalizationHandler(client: client).handle(params)
         case "list_builds": return try await ListBuildsHandler(client: client).handle(params)
         case "upload_build": return try await UploadBuildHandler(client: client).handle(params)

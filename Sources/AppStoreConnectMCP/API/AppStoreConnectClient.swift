@@ -49,6 +49,10 @@ actor AppStoreConnectClient {
         _ = try await performRequest(url: url, method: "PATCH", body: bodyData)
     }
 
+    func delete(_ url: URL) async throws {
+        _ = try await performRequest(url: url, method: "DELETE")
+    }
+
     func upload(_ url: URL, method: String, headers: [String: String], body: Data) async throws {
         _ = try await performExternalRequest(url: url, method: method, headers: headers, body: body)
     }
@@ -120,6 +124,12 @@ actor AppStoreConnectClient {
 
         guard (200...299).contains(statusCode) else {
             if let errorResponse = try? decoder.decode(APIErrorResponse.self, from: data) {
+                if statusCode == 404 {
+                    throw AppStoreConnectError.httpError(
+                        statusCode: statusCode,
+                        body: errorResponse.message
+                    )
+                }
                 throw AppStoreConnectError.apiError(errorResponse.message)
             }
             let bodyString = String(data: data, encoding: .utf8) ?? "No body"

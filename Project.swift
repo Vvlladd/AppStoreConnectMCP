@@ -26,5 +26,16 @@ let project = Project(
                 .external(name: "MCP"),
             ]
         ),
+        .target(
+            name: "AppStoreConnectMCPTests",
+            destinations: [.mac],
+            product: .unitTests,
+            bundleId: "com.appstoreconnect.mcp.tests",
+            deploymentTargets: .macOS("13.0"),
+            sources: ["Tests/AppStoreConnectMCPTests/**"],
+            dependencies: [
+                .target(name: "AppStoreConnectMCP"),
+            ]
+        ),
     ]
 )

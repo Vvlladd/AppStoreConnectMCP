@@ -71,6 +71,18 @@ enum Endpoints {
         URL(string: "\(base)/appStoreVersions/\(versionID)/relationships/build")!
     }
 
+    static func appStoreVersionPhasedReleaseRelationship(versionID: String) -> URL {
+        URL(string: "\(base)/appStoreVersions/\(versionID)/relationships/appStoreVersionPhasedRelease")!
+    }
+
+    static func appStoreVersionPhasedReleases() -> URL {
+        URL(string: "\(base)/appStoreVersionPhasedReleases")!
+    }
+
+    static func appStoreVersionPhasedRelease(id: String) -> URL {
+        URL(string: "\(base)/appStoreVersionPhasedReleases/\(id)")!
+    }
+
     static func reviewSubmissions() -> URL {
         URL(string: "\(base)/reviewSubmissions")!
     }
