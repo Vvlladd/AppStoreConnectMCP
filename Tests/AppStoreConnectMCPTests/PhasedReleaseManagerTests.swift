@@ -1,5 +1,4 @@
 import XCTest
-@testable import AppStoreConnectMCP
 
 final class PhasedReleaseManagerTests: XCTestCase {
     func testEnablingWithoutConfigurationCreatesPhasedRelease() throws {

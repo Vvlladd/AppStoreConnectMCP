@@ -33,7 +33,7 @@ Sources/AppStoreConnectMCP/
 
 ## Available MCP Tools
 
-`list_apps`, `create_version`, `list_versions`, `update_version`, `add_localization`, `list_builds`, `upload_build`, `attach_build`, `prepare_release`, `release_status`, `clone_version_metadata`, `validate_for_submission`, `submit_for_review`, `release_version`, `list_diagnostic_signatures`, `get_diagnostic_logs`, `get_perf_metrics`, `list_orgs`, `set_default_org`
+`list_apps`, `create_version`, `list_versions`, `update_version`, `set_phased_release`, `add_localization`, `list_builds`, `upload_build`, `attach_build`, `prepare_release`, `release_status`, `clone_version_metadata`, `validate_for_submission`, `submit_for_review`, `release_version`, `list_diagnostic_signatures`, `get_diagnostic_logs`, `get_perf_metrics`, `list_orgs`, `set_default_org`
 
 All tools (except `list_orgs` and `set_default_org`) accept an optional `org` parameter to target a specific organization.
 
