@@ -94,6 +94,18 @@ Then ask your agent something like:
 
 > "Prepare version 2.1.0 for my app, validate it's ready for submission, and show me the full release status."
 
+## Handshake Troubleshooting
+
+If Codex reports JSON-RPC `-32603` with “The data couldn’t be read because it isn’t in the correct format” during startup, rebuild this revision and replace the executable referenced by your MCP configuration. The Swift SDK 0.12.1 decodes experimental client capabilities as strings; structured values can fail initialization. This server includes a compatibility transport that ignores unsupported experimental values while preserving standard capabilities.
+
+Verify a built executable with:
+
+```bash
+python3 scripts/test-handshake.py /path/to/AppStoreConnectMCP
+```
+
+The check uses a temporary key and tests initialization, tool discovery, and `list_orgs` without contacting App Store Connect. Restart the MCP connection after replacing the executable.
+
 ## Available Tools
 
 | Tool | Description | Key Parameters |
