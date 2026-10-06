@@ -78,10 +78,12 @@ struct ReleaseMetadataTests {
     "locale":"de-DE","description":"German description","whatsNew":null,"supportUrl":null}}],"links":{"next":null}}
     """#
 
-    static func releaseClient(build: String) -> AppStoreConnectClient {
+    static func releaseClient(build: String, phasedRelationship: String = #"{"data":null}"#) -> AppStoreConnectClient {
         AppStoreConnectClient(responses: [
             "/v1/appStoreVersions/draft": versionJSON,
             "/v1/appStoreVersions/draft/build": build,
+            "/v1/appStoreVersions/draft/relationships/appStoreVersionPhasedRelease": phasedRelationship,
+            "/v1/appStoreVersionPhasedReleases/phased": #"{"data":{"type":"appStoreVersionPhasedReleases","id":"phased","attributes":{"phasedReleaseState":"ACTIVE","currentDayNumber":3}}}"#,
             "/v1/appStoreVersions/draft/appStoreVersionLocalizations": localeOneJSON,
             "/v1/appStoreVersions/draft/appStoreVersionLocalizations?cursor=2": localeTwoJSON,
         ])
@@ -94,6 +96,7 @@ struct ReleaseMetadataTests {
         expect(status.contains("No build attached"), "Null build must not cause a decoding error")
         expect(status.contains("State: PREPARE_FOR_SUBMISSION"), "Use current version state")
         expect(status.contains("Localizations (2)"), "Release status must fetch every localization page")
+        expect(status.contains("Rollout: instant to all users"), "Null phased-release relationship means no phased rollout")
         let validation = text(try await ValidateForSubmissionHandler(client: missing).handle(params))
         expect(validation.contains("[FAIL] Build attached & valid: No build attached"), "A missing build is a failed check, not a tool error")
         expect(validation.contains("[PASS] Version state: PREPARE_FOR_SUBMISSION"), "Validate the current state field")
@@ -104,6 +107,9 @@ struct ReleaseMetadataTests {
         expect(attachedStatus.contains("VALID") && !attachedStatus.contains("No build attached"), "Keep attached-build support")
         let attachedValidation = text(try await ValidateForSubmissionHandler(client: attached).handle(params))
         expect(attachedValidation.contains("[PASS] Build attached & valid:"), "A valid build must pass")
+        let phased = releaseClient(build: #"{"data":null}"#, phasedRelationship: #"{"data":{"type":"appStoreVersionPhasedReleases","id":"phased"}}"#)
+        let phasedStatus = text(try await ReleaseStatusHandler(client: phased).handle(params))
+        expect(phasedStatus.contains("Rollout: phased (state: ACTIVE, day: 3/7)"), "Keep main's phased-release status support")
         for payload in [#"{"data":{"type":"builds","id":"broken"}}"#, "HTTP 403"] {
             do {
                 _ = try await ReleaseStatusHandler(client: releaseClient(build: payload)).handle(params)
