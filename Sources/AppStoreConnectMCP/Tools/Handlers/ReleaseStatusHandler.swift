@@ -1,7 +1,7 @@
 import Foundation
 import MCP
 
-struct ReleaseStatusHandler {
+struct ReleaseStatusHandler: Sendable {
     let client: AppStoreConnectClient
 
     func handle(_ params: CallTool.Parameters) async throws -> CallTool.Result {
@@ -24,7 +24,7 @@ struct ReleaseStatusHandler {
         var output = """
         Release Status for v\(version.attributes.versionString ?? "?") [\(version.id)]
         Platform: \(version.attributes.platform ?? platform)
-        State: \(version.attributes.appStoreState ?? "unknown")
+        State: \(version.attributes.appVersionState ?? version.attributes.appStoreState ?? "unknown")
         Release Type: \(version.attributes.releaseType ?? "not set")
         Rollout: \(rolloutDescription(phasedRelease))
         Copyright: \(version.attributes.copyright ?? "not set")
@@ -52,7 +52,7 @@ struct ReleaseStatusHandler {
             }
         }
 
-        return CallTool.Result(content: [.text(output)])
+        return CallTool.Result(content: [.text(text: output, annotations: nil, _meta: nil)])
     }
 
     private func resolveVersion(appID: String, versionID: String?, platform: String) async throws -> AppStoreVersion {
@@ -78,7 +78,7 @@ struct ReleaseStatusHandler {
         do {
             let response = try await client.get(
                 Endpoints.versionBuild(versionID: versionID),
-                as: APIResponse<Build>.self
+                as: APIResponse<Build?>.self
             )
             return response.data
         } catch let error as AppStoreConnectError {
@@ -88,11 +88,10 @@ struct ReleaseStatusHandler {
     }
 
     private func listLocalizations(versionID: String) async throws -> [AppStoreVersionLocalization] {
-        let response = try await client.get(
+        try await client.getAll(
             Endpoints.appStoreVersionLocalizations(versionID: versionID),
             as: APIListResponse<AppStoreVersionLocalization>.self
         )
-        return response.data
     }
 
     private func fieldStatus(_ value: String?) -> String {

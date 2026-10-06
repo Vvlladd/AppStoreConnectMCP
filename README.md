@@ -131,10 +131,29 @@ Then ask your agent something like:
 
 > "Prepare version 2.1.0 for my app, validate it's ready for submission, and show me the full release status."
 
+## Handshake Troubleshooting
+
+If Codex reports JSON-RPC `-32603` with “The data couldn’t be read because it isn’t in the correct format” during startup, rebuild this revision and replace the executable referenced by your MCP configuration. The Swift SDK 0.12.1 decodes experimental client capabilities as strings; structured values can fail initialization. This server includes a compatibility transport that ignores unsupported experimental values while preserving standard capabilities.
+
+Verify a built executable with:
+
+```bash
+python3 scripts/test-handshake.py /path/to/AppStoreConnectMCP
+```
+
+The check uses a temporary key and tests initialization, tool discovery, and `list_orgs` without contacting App Store Connect. Restart the MCP connection after replacing the executable.
+
 ## Available Tools
 
 | Tool | Description | Key Parameters |
 |------|-------------|----------------|
+| **Metadata Fetching** | | |
+| `get_app` | Fetch name, bundle ID, SKU, primary locale, content rights, kids flag, and accessibility URL | `app_id` |
+| `list_app_infos` | Fetch all app-info records with states, age ratings, and category IDs | `app_id` |
+| `list_app_info_localizations` | Fetch localized names, subtitles, privacy URLs, and privacy policy text | `app_info_id`, `locale?` |
+| `update_app_info_localization` | Update an existing localized app name and/or subtitle | `app_info_id`, `locale`, `name?`, `subtitle?` |
+| `get_version` | Fetch version state, copyright, release settings, dates, review type, and flags | `version_id` |
+| `list_version_localizations` | Fetch keywords, descriptions, release notes, promotional text, and marketing/support URLs | `version_id`, `locale?` |
 | **Release Workflows** | | |
 | `prepare_release` | Check readiness, create version, attach build, sync metadata, configure rollout | `app_id`, `version_string`, `platform`, `phased_release?`, `confirm_immediate_release?` |
 | `release_status` | Full status overview: state, build, localizations, release type, rollout | `app_id`, `version_id?`, `platform?` |
@@ -163,6 +182,33 @@ Then ask your agent something like:
 | `set_default_org` | Change the default organization | `org` |
 
 All tools (except `list_orgs` and `set_default_org`) accept an optional `org` parameter to target a specific organization.
+
+To fetch store metadata, start with `list_apps` to get the app ID. Use `list_app_infos`
+to find the app-info record you want, then pass its ID to `list_app_info_localizations`
+for names, subtitles, and privacy fields. App-info records can represent live or
+upcoming metadata; the output includes each record's state and ID.
+
+Use `update_app_info_localization` with the selected `app_info_id`, an existing
+`locale`, and at least one of `name` or `subtitle`. Omitted fields are preserved;
+an empty subtitle clears it. Select the draft app-info record to change upcoming
+metadata. This tool does not create missing locales.
+
+For keywords and descriptions, use `list_versions` to choose the version and platform,
+then call `list_version_localizations` with its version ID. Both localization tools
+accept an optional `locale` filter and follow all pagination links. Full text is
+returned without truncation; missing or empty fields are shown as `(not set)`.
+
+For example: “Fetch the English name, subtitle, keywords, description, and privacy
+policy URL for my app's current iOS release.”
+
+Verify metadata decoding and formatting with `./scripts/test-metadata.sh`. After
+building, run `python3 scripts/test-handshake.py /path/to/AppStoreConnectMCP` to
+check tool discovery and argument validation. These checks use fixtures and a
+temporary key without contacting App Store Connect.
+
+`./scripts/test-release-metadata.sh` tests draft release checks and localized
+name/subtitle updates against fixtures. It uses the frameworks from a release
+build; pass another build's product directory as its first argument if needed.
 
 ## Configuration
 

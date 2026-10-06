@@ -33,6 +33,10 @@ Sources/AppStoreConnectMCP/
 
 `list_apps`, `create_version`, `list_versions`, `update_version`, `add_localization`, `list_builds`, `attach_build`, `submit_for_review`
 
+Metadata fetching: `get_app`, `list_app_infos`, `list_app_info_localizations`, `get_version`, `list_version_localizations`.
+
+App-info metadata editing: `update_app_info_localization` (`app_info_id`, `locale`, `name?`, `subtitle?`).
+
 ## Build & Run
 
 ```bash

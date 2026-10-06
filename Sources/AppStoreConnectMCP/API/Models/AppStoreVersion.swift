@@ -9,9 +9,14 @@ struct AppStoreVersion: Decodable, Sendable {
         let versionString: String?
         let platform: String?
         let appStoreState: String?
+        let appVersionState: String?
         let copyright: String?
         let releaseType: String?
         let createdDate: String?
+        let earliestReleaseDate: String?
+        let reviewType: String?
+        let usesIdfa: Bool?
+        let downloadable: Bool?
     }
 }
 
