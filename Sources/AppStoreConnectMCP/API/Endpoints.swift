@@ -7,6 +7,26 @@ enum Endpoints {
         URL(string: "\(base)/apps")!
     }
 
+    static func app(id: String) -> URL {
+        URL(string: "\(base)/apps/\(id)")!
+    }
+
+    static func appInfos(appID: String) -> URL {
+        URL(string: "\(base)/apps/\(appID)/appInfos")!
+    }
+
+    static func appInfoLocalizations(appInfoID: String, locale: String? = nil) -> URL {
+        var components = URLComponents(string: "\(base)/appInfos/\(appInfoID)/appInfoLocalizations")!
+        if let locale {
+            components.queryItems = [URLQueryItem(name: "filter[locale]", value: locale)]
+        }
+        return components.url!
+    }
+
+    static func appInfoLocalization(id: String) -> URL {
+        URL(string: "\(base)/appInfoLocalizations/\(id)")!
+    }
+
     static func appStoreVersions(appID: String, platform: String? = nil) -> URL {
         var components = URLComponents(string: "\(base)/apps/\(appID)/appStoreVersions")!
         if let platform {
@@ -27,8 +47,12 @@ enum Endpoints {
         URL(string: "\(base)/appStoreVersions")!
     }
 
-    static func appStoreVersionLocalizations(versionID: String) -> URL {
-        URL(string: "\(base)/appStoreVersions/\(versionID)/appStoreVersionLocalizations")!
+    static func appStoreVersionLocalizations(versionID: String, locale: String? = nil) -> URL {
+        var components = URLComponents(string: "\(base)/appStoreVersions/\(versionID)/appStoreVersionLocalizations")!
+        if let locale {
+            components.queryItems = [URLQueryItem(name: "filter[locale]", value: locale)]
+        }
+        return components.url!
     }
 
     static func appStoreVersionLocalizationsCreate() -> URL {
