@@ -1,7 +1,7 @@
 import Foundation
 import MCP
 
-struct ValidateForSubmissionHandler {
+struct ValidateForSubmissionHandler: Sendable {
     let client: AppStoreConnectClient
 
     func handle(_ params: CallTool.Parameters) async throws -> CallTool.Result {
@@ -21,7 +21,7 @@ struct ValidateForSubmissionHandler {
         var checks: [CheckResult] = []
 
         // 1. Version state
-        let state = version.attributes.appStoreState ?? "unknown"
+        let state = version.attributes.appVersionState ?? version.attributes.appStoreState ?? "unknown"
         let stateOK = state == "PREPARE_FOR_SUBMISSION"
         checks.append(CheckResult(
             name: "Version state",
@@ -104,7 +104,7 @@ struct ValidateForSubmissionHandler {
             output += "NOT READY (\(failCount) issue\(failCount == 1 ? "" : "s") found)"
         }
 
-        return CallTool.Result(content: [.text(output)])
+        return CallTool.Result(content: [.text(text: output, annotations: nil, _meta: nil)])
     }
 
     private func resolveVersion(appID: String, versionID: String?, platform: String) async throws -> AppStoreVersion {
@@ -130,7 +130,7 @@ struct ValidateForSubmissionHandler {
         do {
             let response = try await client.get(
                 Endpoints.versionBuild(versionID: versionID),
-                as: APIResponse<Build>.self
+                as: APIResponse<Build?>.self
             )
             return response.data
         } catch let error as AppStoreConnectError {
@@ -140,11 +140,10 @@ struct ValidateForSubmissionHandler {
     }
 
     private func listLocalizations(versionID: String) async throws -> [AppStoreVersionLocalization] {
-        let response = try await client.get(
+        try await client.getAll(
             Endpoints.appStoreVersionLocalizations(versionID: versionID),
             as: APIListResponse<AppStoreVersionLocalization>.self
         )
-        return response.data
     }
 
     private func nonEmpty(_ value: String?) -> String? {
@@ -156,7 +155,7 @@ struct ValidateForSubmissionHandler {
     }
 }
 
-private struct CheckResult {
+private struct CheckResult: Sendable {
     let name: String
     let passed: Bool
     let detail: String

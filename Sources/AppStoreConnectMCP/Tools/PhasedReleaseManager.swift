@@ -30,11 +30,11 @@ struct PhasedReleaseManager: Sendable {
     }
 
     func currentPhasedRelease(forVersionID versionID: String) async throws -> AppStoreVersionPhasedRelease? {
-        let relationship: ResourceIdentifierResponse
+        let relationship: APIResponse<ResourceIdentifierResponse.ResourceIdentifier?>
         do {
             relationship = try await client.get(
                 Endpoints.appStoreVersionPhasedReleaseRelationship(versionID: versionID),
-                as: ResourceIdentifierResponse.self
+                as: APIResponse<ResourceIdentifierResponse.ResourceIdentifier?>.self
             )
         } catch let error as AppStoreConnectError {
             guard case .httpError(statusCode: 404, _) = error else { throw error }
@@ -49,8 +49,9 @@ struct PhasedReleaseManager: Sendable {
             return nil
         }
 
+        guard let identifier = relationship.data else { return nil }
         let response = try await client.get(
-            Endpoints.appStoreVersionPhasedRelease(id: relationship.data.id),
+            Endpoints.appStoreVersionPhasedRelease(id: identifier.id),
             as: APIResponse<AppStoreVersionPhasedRelease>.self
         )
         return response.data

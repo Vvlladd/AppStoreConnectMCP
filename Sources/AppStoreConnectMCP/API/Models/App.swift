@@ -10,5 +10,8 @@ struct App: Decodable, Sendable {
         let bundleId: String
         let sku: String?
         let primaryLocale: String?
+        let contentRightsDeclaration: String?
+        let isOrEverWasMadeForKids: Bool?
+        let accessibilityUrl: String?
     }
 }

@@ -36,6 +36,12 @@ struct ToolRouter: Sendable {
     private func dispatchTool(_ params: CallTool.Parameters, client: AppStoreConnectClient) async throws -> CallTool.Result {
         switch params.name {
         case "list_apps": return try await ListAppsHandler(client: client).handle(params)
+        case "get_app": return try await GetAppHandler(client: client).handle(params)
+        case "list_app_infos": return try await ListAppInfosHandler(client: client).handle(params)
+        case "list_app_info_localizations": return try await ListAppInfoLocalizationsHandler(client: client).handle(params)
+        case "update_app_info_localization": return try await UpdateAppInfoLocalizationHandler(client: client).handle(params)
+        case "get_version": return try await GetVersionHandler(client: client).handle(params)
+        case "list_version_localizations": return try await ListVersionLocalizationsHandler(client: client).handle(params)
         case "create_version": return try await CreateVersionHandler(client: client).handle(params)
         case "list_versions": return try await ListVersionsHandler(client: client).handle(params)
         case "update_version": return try await UpdateVersionHandler(client: client).handle(params)

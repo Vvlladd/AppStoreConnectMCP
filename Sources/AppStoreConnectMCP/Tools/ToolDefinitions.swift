@@ -3,6 +3,12 @@ import MCP
 enum ToolDefinitions {
     static let allTools: [Tool] = [
         listApps,
+        getApp,
+        listAppInfos,
+        listAppInfoLocalizations,
+        updateAppInfoLocalization,
+        getVersion,
+        listVersionLocalizations,
         createVersion,
         listVersions,
         updateVersion,
@@ -47,6 +53,62 @@ enum ToolDefinitions {
         name: "list_apps",
         description: "List all apps in your App Store Connect account",
         inputSchema: schema(properties: [:])
+    )
+
+    static let getApp = Tool(
+        name: "get_app",
+        description: "Fetch app metadata: name, bundle ID, SKU, primary locale, content rights, kids flag, and accessibility URL. For localized names and subtitles, use list_app_info_localizations.",
+        inputSchema: schema(properties: ["app_id": prop("string", "The app ID")], required: ["app_id"])
+    )
+
+    static let listAppInfos = Tool(
+        name: "list_app_infos",
+        description: "Fetch all app info records with their states, age ratings, and category IDs. Records may describe live or upcoming metadata. Use an app info ID with list_app_info_localizations to fetch names and subtitles.",
+        inputSchema: schema(properties: ["app_id": prop("string", "The app ID")], required: ["app_id"])
+    )
+
+    static let listAppInfoLocalizations = Tool(
+        name: "list_app_info_localizations",
+        description: "Fetch localized app names, subtitles, privacy policy URL/text, and privacy choices URL for an app info record. Returns all pages. Keywords and descriptions are available through list_version_localizations.",
+        inputSchema: schema(
+            properties: [
+                "app_info_id": prop("string", "App info ID from list_app_infos (different from the app ID or version ID)"),
+                "locale": prop("string", "Filter by locale code, e.g. en-US (optional, returns all locales if omitted)"),
+            ],
+            required: ["app_info_id"]
+        )
+    )
+
+    static let updateAppInfoLocalization = Tool(
+        name: "update_app_info_localization",
+        description: "Update the name and/or subtitle of an existing app-info localization. Use an app info ID from list_app_infos and a locale. Omitted fields are preserved; an empty subtitle clears it. This updates app-level metadata, not version keywords or descriptions.",
+        inputSchema: schema(
+            properties: [
+                "app_info_id": prop("string", "App info ID from list_app_infos; choose the draft record for upcoming metadata"),
+                "locale": prop("string", "Existing localization's locale code, e.g. en-US or de-DE"),
+                "name": prop("string", "Updated app name (optional, cannot be empty)"),
+                "subtitle": prop("string", "Updated subtitle (optional, use an empty string to clear it)"),
+            ],
+            required: ["app_info_id", "locale"]
+        )
+    )
+
+    static let getVersion = Tool(
+        name: "get_version",
+        description: "Fetch version metadata: version string, platform, state, copyright, release type, dates, review type, IDFA usage, and downloadable flag. Use list_version_localizations for keywords and descriptions.",
+        inputSchema: schema(properties: ["version_id": prop("string", "The version ID from list_versions")], required: ["version_id"])
+    )
+
+    static let listVersionLocalizations = Tool(
+        name: "list_version_localizations",
+        description: "Fetch localized keywords, descriptions, release notes, promotional text, marketing URLs, and support URLs for an App Store version. Returns all pages. Names and subtitles are available through list_app_info_localizations.",
+        inputSchema: schema(
+            properties: [
+                "version_id": prop("string", "The version ID from list_versions"),
+                "locale": prop("string", "Filter by locale code, e.g. en-US (optional, returns all locales if omitted)"),
+            ],
+            required: ["version_id"]
+        )
     )
 
     static let createVersion = Tool(

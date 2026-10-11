@@ -58,8 +58,43 @@ def main():
                 send(process, {"jsonrpc": "2.0", "method": "notifications/initialized"})
                 tools = request(process, 2, "tools/list", {})["tools"]
                 assert any(tool["name"] == "list_apps" for tool in tools), tools
+                metadata_tools = {
+                    "get_app": "app_id", "list_app_infos": "app_id",
+                    "list_app_info_localizations": "app_info_id",
+                    "update_app_info_localization": "app_info_id",
+                    "get_version": "version_id", "list_version_localizations": "version_id",
+                }
+                by_name = {tool["name"]: tool for tool in tools}
+                for name, required_id in metadata_tools.items():
+                    schema = by_name[name]["inputSchema"]
+                    assert required_id in schema["required"], schema
+                    assert "org" in schema["properties"], schema
+                assert "locale" in by_name["update_app_info_localization"]["inputSchema"]["required"]
                 result = request(process, 3, "tools/call", {"name": "list_orgs", "arguments": {}})
                 assert not result.get("isError", False), result
+                if not capabilities:
+                    request_id = 4
+                    for name, required_id in metadata_tools.items():
+                        for arguments in ({}, {required_id: 123}, {required_id: ""}, {required_id: "bad/id"}):
+                            result = request(process, request_id, "tools/call", {"name": name, "arguments": arguments})
+                            assert result.get("isError", False), result
+                            assert required_id in result["content"][0]["text"], result
+                            request_id += 1
+                        if "localizations" in name:
+                            for locale in (123, "", "   "):
+                                result = request(process, request_id, "tools/call", {
+                                    "name": name, "arguments": {required_id: "test-id", "locale": locale},
+                                })
+                                assert result.get("isError", False), result
+                                assert "locale must be a non-empty string" in result["content"][0]["text"], result
+                                request_id += 1
+                    for fields in ({}, {"name": 123}, {"subtitle": 123}, {"name": "   "}):
+                        result = request(process, request_id, "tools/call", {
+                            "name": "update_app_info_localization",
+                            "arguments": {"app_info_id": "test-id", "locale": "en-US", **fields},
+                        })
+                        assert result.get("isError", False), result
+                        request_id += 1
                 print("PASS:", json.dumps(capabilities), "—", len(tools), "tools")
             finally:
                 process.terminate()
