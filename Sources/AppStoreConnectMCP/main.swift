@@ -45,7 +45,7 @@ do {
         await router.route(params)
     }
 
-    let transport = StdioTransport()
+    let transport = InitializationCompatibilityTransport()
     try await server.start(transport: transport)
     logger.info("Server started")
     await server.waitUntilCompleted()
