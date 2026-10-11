@@ -1,6 +1,6 @@
 import ProjectDescription
 
-let mcpVersion = "1.3.0"
+let mcpVersion = "1.4.0"
 
 let project = Project(
     name: "AppStoreConnectMCP",
